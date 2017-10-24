@@ -32,6 +32,7 @@ def main():
         data_frame.loc[row_index] = row
 
     print(data_frame)
+    data_frame.tocsv('issues.csv')
 
 
 def parse_issue_json(issue):
