@@ -28,14 +28,20 @@ def main():
     except FileNotFoundError:
         data_frame = pd.DataFrame(columns=HEADER)
 
-    for issue in jira.all_issues():
+    data_frame = collect_issues(jira, data_frame)
+
+    print(data_frame)
+    data_frame.tocsv('issues.csv')
+
+
+def collect_issues(jirapi_conn, data_frame):
+    for issue in jirapi_conn.all_issues():
         row_index = get_issue_key(issue)
         row_dict = parse_issue_json(issue)
         row = [row_dict[field] for field in HEADER]
         data_frame.loc[row_index] = row
 
-    print(data_frame)
-    data_frame.tocsv('issues.csv')
+    return data_frame
 
 
 def parse_issue_json(issue):
