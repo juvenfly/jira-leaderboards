@@ -48,6 +48,6 @@ class JirApi(object):
             with open('state.json', 'w+') as state_file:
                 state_json = json.loads(state_file)
                 state_json['last_ticket_retrieved'] = issue_key
-                json.dumps(state_json, state_file)
+                json.dump(state_json, state_file)
 
         return resp.json()
