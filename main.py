@@ -23,6 +23,11 @@ HEADER = [
 
 def main():
     jira = JirApi()
+    try:
+        data_frame = pd.DataFrame.from_csv('issues.csv')
+    except FileNotFoundError:
+        pass
+
     data_frame = pd.DataFrame(columns=HEADER)
 
     for issue in jira.all_issues():
