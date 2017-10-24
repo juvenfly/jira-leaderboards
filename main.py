@@ -1,7 +1,6 @@
-import getpass
-
 import pandas as pd
-from jira import JIRA, JIRAError
+
+from api import JirApi
 
 HEADER = [
     'key',
@@ -16,61 +15,48 @@ HEADER = [
     'resolved_datetime',
     'status',
     'labels',
-    # 'original_estimate',
-    # 'remaining_estimate',
-    # 'time_spent',
+    'original_estimate',
+    'remaining_estimate',
+    'time_spent',
 ]
 
 
 def main():
-    username = input('Username: ')
-    password = getpass.getpass('Password: ')
-    jira = JIRA(options={"server": "https://farmobile.atlassian.net/"}, basic_auth=(username, password))
-    i = 1000
-
+    jira = JirApi()
     data_frame = pd.DataFrame(columns=HEADER)
 
-    while True:
-        try:
-            row = []
-            issue_key = 'FARM-{}'.format(i)
-
-            issue = jira.issue(issue_key)
-            row_dict = {
-                'key': issue_key,
-                'summary': issue.fields.summary,
-                'issue_type': ','.join(issue.fields.labels),
-                'components': issue.fields.priority.name,
-                'fix_versions': ','.join([issue.fields.components[i].name for i, obj in enumerate(issue.fields.components)]),
-                'reporter': issue.fields.reporter.name,
-                'assignee': issue.fields.assignee.name,
-                'created_datetime': issue.fields.created,
-                'updated_datetime': issue.fields.updated,
-                'resolved_datetime': issue.fields.resolutiondate,
-                'status': issue.fields.status.name,
-                'labels': ','.join(issue.fields.labels),
-                # 'original_estimate': issue.fields.timetracking.originalEstimateSeconds,
-                # 'remaining_estimate': issue.fields.timetracking.remainingEstimateSeconds,
-                # 'time_spent': issue.fields.timetracking.timeSpentSeconds,
-            }
-
-            for field in HEADER:
-                print('{}: {}'.format(field, row_dict[field]))
-                row.append(row_dict[field])
-
-            print(len(row))
-            print(row)
-            data_frame.loc[i] = row
-
-            i += 1
-            if i >= 1010:
-                break
-
-        except JIRAError as e:
-            print('status_code: {}\ttext: {}'.format(e.status_code, e.text))
-            break
+    for issue in jira.all_issues():
+        row_index = get_issue_key(issue)
+        row_dict = parse_issue_json(issue)
+        row = [row_dict[field] for field in HEADER]
+        data_frame.loc[row_index] = row
 
     print(data_frame)
+
+
+def parse_issue_json(issue):
+    row_dict = {
+        'key': issue['key'],
+        'summary': issue['fields']['summary'],
+        'issue_type': issue['fields']['issuetype']['name'],
+        'components': ','.join([issue['fields']['components'][i]['name'] for i, obj in enumerate(issue['fields']['components'])]),
+        'fix_versions': ','.join([issue['fields']['fixVersions'][i]['name'] for i, obj in enumerate(issue['fields']['fixVersions'])]),
+        'reporter': issue['fields']['reporter']['displayName'],
+        'assignee': issue['fields']['assignee']['displayName'],
+        'created_datetime': issue['fields']['created'],
+        'updated_datetime': issue['fields']['updated'],
+        'resolved_datetime': issue['fields']['resolutiondate'],
+        'status': issue['fields']['status']['name'],
+        'labels': ','.join(issue['fields']['labels']),
+        'original_estimate': issue['fields']['timetracking'].get('originalEstimateSeconds'),
+        'remaining_estimate': issue['fields']['timetracking'].get('remainingEstimateSeconds'),
+        'time_spent': issue['fields']['timetracking'].get('timeSpentSeconds'),
+    }
+    return row_dict
+
+
+def get_issue_key(issue):
+    return issue['key'].split('-')[-1]
 
 
 if __name__ == '__main__':
