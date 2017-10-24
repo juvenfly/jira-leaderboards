@@ -1,5 +1,6 @@
 import base64
 import getpass
+import json
 
 import requests
 
@@ -44,5 +45,9 @@ class JirApi(object):
             self.found_ticket = True
         elif resp.status_code == 404 and self.found_ticket:
             self.more_to_pull = False
+            with open('state.json', 'w+') as state_file:
+                state_json = json.loads(state_file)
+                state_json['last_ticket_retrieved'] = issue_key
+                json.dumps(state_json, state_file)
 
         return resp.json()
