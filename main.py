@@ -42,7 +42,7 @@ def collect_issues(jirapi_conn, data_frame):
     :return:
     """
     for issue in jirapi_conn.all_issues():
-        row_index = get_issue_key(issue)
+        row_index = get_issue_num(issue)
         row_dict = parse_issue_json(issue)
         row = [row_dict[field] for field in HEADER]
         data_frame.loc[row_index] = row
@@ -72,7 +72,7 @@ def get_leaf_value(issue_json, keys):
     return result
 
 
-def get_issue_key(issue):
+def get_issue_num(issue):
     return issue['key'].split('-')[-1]
 
 
