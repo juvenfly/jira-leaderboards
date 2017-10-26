@@ -24,7 +24,7 @@ class JirApi(object):
     def all_issues(self):
         """
         Generator that yields issue json for each issue in a project
-        :return:
+        :return: yields JIRA issue JSON
         """
         issue_num = 1
         while self.more_to_pull:
@@ -36,8 +36,8 @@ class JirApi(object):
     def get_issue_json(self, issue_key):
         """
         Returns json for a given issue if able or sets self.more_to_pull to False when done
-        :param issue_key:
-        :return:
+        :param issue_key: JIRA issue key (e.g. EX-123)
+        :return: response JSON
         """
         url = self.domain.format(issue_key)
         resp = requests.get(url, headers=self.headers)

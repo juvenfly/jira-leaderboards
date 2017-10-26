@@ -37,9 +37,9 @@ def main():
 def collect_issues(jirapi_conn, data_frame):
     """
     Compile all issues from a given board into
-    :param jirapi_conn:
-    :param data_frame:
-    :return:
+    :param jirapi_conn: JirApi object
+    :param data_frame: pandas data_frame in which to store JIRA issue data
+    :return: pandas data_frame with all JIRA issue data
     """
     for issue in jirapi_conn.all_issues():
         row_index = get_issue_num(issue)
