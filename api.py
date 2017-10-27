@@ -22,6 +22,7 @@ class JirApi(object):
         self.project = 'FARM'
         self.more_to_pull = True
         self.found_ticket = False
+        self.access_token = 'YWxhYm9yZGU6Q2hpcXVpc2lzdGhlSE9OT1IxJA=='
 
     def all_issues(self):
         """
@@ -49,11 +50,7 @@ class JirApi(object):
             self.found_ticket = True
         elif resp.status_code == 404 and self.found_ticket:
             self.more_to_pull = False
-            # TODO: refactor this into it's own helper method
-            # with open('state.json', 'w+') as state_file:
-            #     state_json = json.loads(state_file)
-            #     state_json['last_ticket_retrieved'] = issue_key
-            #     json.dump(state_json, state_file)
+            self.store_state_json(issue_key)
         elif resp.status_code == 401:
             raise Exception('Unauthorized')
 
@@ -63,3 +60,9 @@ class JirApi(object):
             print(resp.text)
             raise
         return result
+
+    def store_state_json(self, issue_key):
+        with open('state.json', 'w+') as state_file:
+            state_json = json.loads(state_file)
+            state_json['last_ticket_retrieved'] = issue_key
+            json.dump(state_json, state_file)
