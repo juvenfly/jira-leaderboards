@@ -6,7 +6,7 @@ import requests
 
 
 class JirApi(object):
-    def __init__(self, basic_auth=True):
+    def __init__(self, basic_auth=True, start_issue=1, end_issue=None):
         if basic_auth:
             username = input('Username: ')
             password = getpass.getpass('Password: ')
@@ -16,6 +16,8 @@ class JirApi(object):
                 'Content-Type': 'application/json',
             }
 
+        self.start_issue = start_issue
+        self.end_issue = end_issue
         self.domain = 'https://farmobile.atlassian.net/rest/api/2/issue/{}'
         self.project = 'FARM'
         self.more_to_pull = True
@@ -26,9 +28,11 @@ class JirApi(object):
         Generator that yields issue json for each issue in a project
         :return: yields JIRA issue JSON
         """
-        issue_num = 1
-        while self.more_to_pull:
+        issue_num = self.start_issue
+        while self.more_to_pull and issue_num <= self.end_issue:
             issue_key = '{}-{}'.format(self.project, issue_num)
+            if issue_num % 50 == 0:
+                print('Fetching Issue: {}'.format(issue_key))
             issue_num += 1
             issue_json = self.get_issue_json(issue_key)
             yield issue_json
@@ -45,9 +49,17 @@ class JirApi(object):
             self.found_ticket = True
         elif resp.status_code == 404 and self.found_ticket:
             self.more_to_pull = False
-            with open('state.json', 'w+') as state_file:
-                state_json = json.loads(state_file)
-                state_json['last_ticket_retrieved'] = issue_key
-                json.dump(state_json, state_file)
+            # TODO: refactor this into it's own helper method
+            # with open('state.json', 'w+') as state_file:
+            #     state_json = json.loads(state_file)
+            #     state_json['last_ticket_retrieved'] = issue_key
+            #     json.dump(state_json, state_file)
+        elif resp.status_code == 401:
+            raise Exception('Unauthorized')
 
-        return resp.json()
+        try:
+            result = resp.json()
+        except Exception as e:
+            print(resp.text)
+            raise
+        return result
