@@ -1,4 +1,6 @@
 import pandas as pd
+from plotly import plotly
+from plotly.graph_objs import *
 
 from api import JirApi
 
@@ -20,18 +22,91 @@ HEADER = [
     'time_spent',
 ]
 
+FIELD_MAP = {
+    'key': ['key'],
+    'summary': ['fields', 'summary'],
+    'issue_type': ['fields', 'issuetype', 'name'],
+    'components': ['fields', 'components'],
+    'fix_versions': ['fields', 'fixVersions'],
+    'reporter': ['fields', 'reporter', 'name'],
+    'assignee': ['fields', 'assignee', 'name'],
+    'created_datetime': ['fields', 'created'],
+    'updated_datetime': ['fields', 'created'],
+    'resolved_datetime': ['fields', 'resolutiondate'],
+    'status': ['fields', 'status', 'name'],
+    'labels': ['fields', 'labels'],
+    'original_estimate': ['fields', 'timetracking', 'originalEstimateSeconds'],
+    'remaining_estimate': ['fields', 'timetracking', 'remainingEstimateSeconds'],
+    'time_spent': ['fields', 'timetracking', 'timeSpentSeconds'],
+}
+
 
 def main():
-    jira = JirApi()
+    # jira = JirApi(start_issue=4300, end_issue=5000)
     try:
         data_frame = pd.DataFrame.from_csv('issues.csv')
     except FileNotFoundError:
         data_frame = pd.DataFrame(columns=HEADER)
 
-    data_frame = collect_issues(jira, data_frame)
+    # data_frame = collect_issues(jira, data_frame)
 
-    print(data_frame)
-    data_frame.tocsv('issues.csv')
+    # print(data_frame)
+    # data_frame.to_csv('issues.csv')
+    calc_average_time_est_error(data_frame)
+    # generate_plot(data_frame)
+
+
+def calc_average_time_est_error(data_frame):
+    overestimated_count = 0
+    underestimated_count = 0
+    spot_on = 0
+    total_diff = 0
+    time_tracked_issues = 0
+    for i, row in data_frame.iterrows():
+        original_estimate = row['original_estimate'] if pd.notnull(row['original_estimate']) else None
+        time_spent = row['time_spent'] if pd.notnull(row['time_spent']) else None
+        if original_estimate and time_spent:
+            if original_estimate < time_spent:
+                underestimated_count += 1
+            elif original_estimate > time_spent:
+                overestimated_count += 1
+            else:
+                spot_on += 1
+            time_tracked_issues += 1
+            diff = original_estimate - time_spent
+            total_diff += diff
+            average_estimate = round(data_frame['original_estimate'].mean() / 60, 2)
+            average_actual = round(data_frame['time_spent'].mean() / 60, 2)
+    average_diff = round(total_diff / (time_tracked_issues * 60), 2)
+    print('Overestimated issues: {}'.format(overestimated_count))
+    print('Underestimated issues: {}'.format(underestimated_count))
+    print('Spot on: {}'.format(spot_on))
+    print('Total time tracked issues: {}'.format(time_tracked_issues))
+    print('Average etimate: {}m'.format(average_estimate))
+    print('Average actual: {}m'.format(average_actual))
+    print('Average estimate off by {}m.'.format(average_diff))
+
+
+def generate_plot(data_frame):
+    trace0 = Scatter(
+        x=data_frame.index.tolist(),
+        y=data_frame['time_spent'],
+        mode='markers',
+        name='Time Spent'
+    )
+    trace1 = Scatter(
+        x=data_frame.index.tolist(),
+        y=data_frame['original_estimate'],
+        mode='markers',
+        name='Original Estimate'
+    )
+    trace2 = Bar(
+        x=data_frame.index.tolist(),
+        y=data_frame['original_estimate'] - data_frame['time_spent'],
+        name='Difference'
+    )
+    data = Data([trace0, trace1, trace2])
+    plotly.plot(data, filename='test')
 
 
 def collect_issues(jirapi_conn, data_frame):
@@ -51,7 +126,7 @@ def collect_issues(jirapi_conn, data_frame):
 
 
 def parse_issue_json(issue):
-    row_dict = {key: get_leaf_value(issue, HEADER) for key in HEADER}
+    row_dict = {key: get_leaf_value(issue, FIELD_MAP[key]) for key in HEADER}
     return row_dict
 
 
@@ -67,8 +142,12 @@ def get_leaf_value(issue_json, keys):
         result = result.get(keys[i])
         if result is None:
             break
-    if isinstance(result, list):
-        result = ','.join(result)
+    if isinstance(result, list) and result:
+        if isinstance(result[0], str):
+            result = ','.join(result)
+        elif isinstance(result[0], dict):
+            temp_result = ','.join([result[i].get('name') for i, obj in enumerate(result)])
+            result = temp_result
     return result
 
 
