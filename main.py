@@ -1,7 +1,9 @@
+import re
+
 import pandas as pd
 
 from api import JirApi
-from plotter import generate_time_estimates_plot
+from plotter import time_estimates_plot
 
 HEADER = [
     'key',
@@ -19,6 +21,7 @@ HEADER = [
     'original_estimate',
     'remaining_estimate',
     'time_spent',
+    'sprints',
 ]
 
 FIELD_MAP = {
@@ -30,13 +33,14 @@ FIELD_MAP = {
     'reporter': ['fields', 'reporter', 'name'],
     'assignee': ['fields', 'assignee', 'name'],
     'created_datetime': ['fields', 'created'],
-    'updated_datetime': ['fields', 'created'],
+    'updated_datetime': ['fields', 'updated'],
     'resolved_datetime': ['fields', 'resolutiondate'],
     'status': ['fields', 'status', 'name'],
     'labels': ['fields', 'labels'],
     'original_estimate': ['fields', 'timetracking', 'originalEstimateSeconds'],
     'remaining_estimate': ['fields', 'timetracking', 'remainingEstimateSeconds'],
     'time_spent': ['fields', 'timetracking', 'timeSpentSeconds'],
+    'sprints': ['fields', 'customfield_10004']
 }
 
 
@@ -52,7 +56,7 @@ def main():
     # print(data_frame)
     # data_frame.to_csv('issues.csv')
     calc_average_time_est_error(data_frame)
-    generate_time_estimates_plot(data_frame, xrange=[jira.start_issue, jira.end_issue])
+    time_estimates_plot(data_frame, xrange=[jira.start_issue, jira.end_issue])
 
 
 def calc_average_time_est_error(data_frame):
@@ -103,7 +107,13 @@ def collect_issues(jirapi_conn, data_frame):
 
 
 def parse_issue_json(issue):
-    row_dict = {key: get_leaf_value(issue, FIELD_MAP[key]) for key in HEADER}
+    """
+    Create a dict of values to be inserted into pandas data_frame
+    :param issue: issue JSON from JirApi
+    :return: unordered dict of row values
+    """
+    row_dict = {key: get_leaf_value(issue, FIELD_MAP[key]) for key in HEADER if key != 'sprints'}
+    row_dict['sprints'] = get_sprints(issue)
     return row_dict
 
 
@@ -126,6 +136,18 @@ def get_leaf_value(issue_json, keys):
             temp_result = ','.join([result[i].get('name') for i, obj in enumerate(result)])
             result = temp_result
     return result
+
+
+def get_sprints(issue):
+    try:
+        sprints_string = issue['fields']['customfield_10004']
+    except KeyError:
+        return None
+    matches = [re.search(r'name=.+,goal=', sprint) for sprint in sprints_string]
+    matches = [match.group(0).replace('name=', '').replace(',goal=', '') for match in matches]
+    sprints = ','.join([match for match in matches])
+
+    return sprints
 
 
 def get_issue_num(issue):
