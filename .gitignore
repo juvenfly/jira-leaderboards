@@ -105,3 +105,5 @@ ENV/
 
 # project
 state.json
+sample_issue.json
+issues.csv
