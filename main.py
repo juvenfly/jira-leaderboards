@@ -129,7 +129,7 @@ def get_leaf_value(issue_json, keys):
         result = result.get(keys[i])
         if result is None:
             break
-    if isinstance(result, list) and result:
+    if result and isinstance(result, list):
         if isinstance(result[0], str):
             result = ','.join(result)
         elif isinstance(result[0], dict):
