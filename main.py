@@ -1,8 +1,7 @@
 import pandas as pd
-from plotly import plotly
-from plotly.graph_objs import *
 
 from api import JirApi
+from plotter import generate_time_estimates_plot
 
 HEADER = [
     'key',
@@ -53,7 +52,7 @@ def main():
     # print(data_frame)
     # data_frame.to_csv('issues.csv')
     calc_average_time_est_error(data_frame)
-    # generate_plot(data_frame)
+    # generate_time_estimates_plot(data_frame)
 
 
 def calc_average_time_est_error(data_frame):
@@ -85,28 +84,6 @@ def calc_average_time_est_error(data_frame):
     print('Average etimate: {}m'.format(average_estimate))
     print('Average actual: {}m'.format(average_actual))
     print('Average estimate off by {}m.'.format(average_diff))
-
-
-def generate_plot(data_frame):
-    trace0 = Scatter(
-        x=data_frame.index.tolist(),
-        y=data_frame['time_spent'],
-        mode='markers',
-        name='Time Spent'
-    )
-    trace1 = Scatter(
-        x=data_frame.index.tolist(),
-        y=data_frame['original_estimate'],
-        mode='markers',
-        name='Original Estimate'
-    )
-    trace2 = Bar(
-        x=data_frame.index.tolist(),
-        y=data_frame['original_estimate'] - data_frame['time_spent'],
-        name='Difference'
-    )
-    data = Data([trace0, trace1, trace2])
-    plotly.plot(data, filename='test')
 
 
 def collect_issues(jirapi_conn, data_frame):
