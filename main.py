@@ -143,8 +143,7 @@ def get_sprints(issue):
         sprints_string = issue['fields']['customfield_10004']
     except KeyError:
         return None
-    matches = [re.search(r'name=(.+),goal=', sprint).group(1) for sprint in sprints_string]
-    sprints = ','.join([match for match in matches])
+    sprints = ','.join([re.search(r'name=(.+),goal=', sprint).group(1) for sprint in sprints_string])
 
     return sprints
 
