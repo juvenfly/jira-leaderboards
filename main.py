@@ -41,7 +41,7 @@ FIELD_MAP = {
 
 
 def main():
-    # jira = JirApi(start_issue=4300, end_issue=5000)
+    jira = JirApi(start_issue=4300, end_issue=5000)
     try:
         data_frame = pd.DataFrame.from_csv('issues.csv')
     except FileNotFoundError:
@@ -52,7 +52,7 @@ def main():
     # print(data_frame)
     # data_frame.to_csv('issues.csv')
     calc_average_time_est_error(data_frame)
-    # generate_time_estimates_plot(data_frame)
+    generate_time_estimates_plot(data_frame, xrange=[jira.start_issue, jira.end_issue])
 
 
 def calc_average_time_est_error(data_frame):
