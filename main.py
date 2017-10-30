@@ -53,7 +53,6 @@ def main():
 
     # data_frame = collect_issues(jira, data_frame)
 
-    # print(data_frame)
     # data_frame.to_csv('issues.csv')
     calc_average_time_est_error(data_frame)
     time_estimates_plot(data_frame, xrange=[jira.start_issue, jira.end_issue])
