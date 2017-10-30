@@ -10,7 +10,7 @@ class JirApi(object):
         if basic_auth:
             username = input('Username: ')
             password = getpass.getpass('Password: ')
-            self.access_token = base64.b64encode('{}:{}'.format(username, password))
+            self.access_token = base64.b64encode('{}:{}'.format(username, password).encode('ascii'))
             self.headers = {
                 'Authorization': 'Basic {}'.format(self.access_token),
                 'Content-Type': 'application/json',
@@ -22,7 +22,6 @@ class JirApi(object):
         self.project = 'FARM'
         self.more_to_pull = True
         self.found_ticket = False
-        self.access_token = 'YWxhYm9yZGU6Q2hpcXVpc2lzdGhlSE9OT1IxJA=='
 
     def all_issues(self):
         """
