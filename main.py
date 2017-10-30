@@ -47,6 +47,7 @@ FIELD_MAP = {
 def main():
     jira = JirApi(start_issue=4300, end_issue=5000)
     try:
+        # TODO: validate header from archive is same as above
         data_frame = pd.DataFrame.from_csv('issues.csv')
     except FileNotFoundError:
         data_frame = pd.DataFrame(columns=HEADER)
@@ -77,8 +78,8 @@ def calc_average_time_est_error(data_frame):
             time_tracked_issues += 1
             diff = original_estimate - time_spent
             total_diff += diff
-            average_estimate = round(data_frame['original_estimate'].mean() / 60, 2)
-            average_actual = round(data_frame['time_spent'].mean() / 60, 2)
+    average_estimate = round(data_frame['original_estimate'].mean() / 60, 2)
+    average_actual = round(data_frame['time_spent'].mean() / 60, 2)
     average_diff = round(total_diff / (time_tracked_issues * 60), 2)
     print('Overestimated issues: {}'.format(overestimated_count))
     print('Underestimated issues: {}'.format(underestimated_count))
