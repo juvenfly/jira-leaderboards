@@ -1,5 +1,5 @@
 from plotly import plotly
-from plotly.graph_objs import Scatter, Bar, Layout, Data
+from plotly.graph_objs import Scatter, Bar, Layout, Data, Figure
 
 
 def generate_time_estimates_plot(data_frame):
@@ -30,4 +30,5 @@ def generate_time_estimates_plot(data_frame):
             title='Time (s)'
         ),
     )
-    plotly.plot(data, filename='test')
+    figure = Figure(data=data, layout=layout)
+    plotly.plot(figure, filename='test')
