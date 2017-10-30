@@ -21,4 +21,13 @@ def generate_time_estimates_plot(data_frame):
         name='Difference'
     )
     data = Data([trace0, trace1, trace2])
+    layout = Layout(
+        title='Time Estimate Accuracy',
+        xaxis=dict(
+            title='Issue Number'
+        ),
+        yaxis=dict(
+            title='Time (s)'
+        ),
+    )
     plotly.plot(data, filename='test')
