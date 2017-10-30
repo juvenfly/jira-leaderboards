@@ -5,6 +5,7 @@ import main
 
 class TestMainHelpers(TestCase):
 
+    # TODO: move test_json to separate file
     def test_get_leaf_value(self):
         test_json = {
             'depth_1': 'return_me',
@@ -40,3 +41,60 @@ class TestMainHelpers(TestCase):
 
         for key_list in fail_keys:
             self.assertIsNone(main.get_leaf_value(test_json, key_list))
+
+    def test_parse_issue_json(self):
+        test_json = {
+            "key": "TEST-123",
+            "fields": {
+                "summary": "return_summary",
+                "issuetype": {"other_stuff": "don't_return_me", "name": "return_issuetype"},
+                "components": [
+                    {"other_stuff": "don't_return_me", "name": "return_component"}
+                ],
+                "fixVersions": [
+                    {"other_stuff": "don't_return_me", "name": "return_fixVersions"}
+                ],
+                "reporter": {"other_stuff": "don't_return_me", "name": "return_reporter"},
+                "assignee": {"other_stuff": "don't_return_me", "name": "return_assignee"},
+                "created": "return_created",
+                "updated": "return_updated",
+                "resolutiondate": "return_resolutiondate",
+                "status": {"other_stuff": "don't_return_me", "name": "return_status"},
+                "labels": ["return_label"],
+                "timetracking": {
+                    "originalEstimate": "don't_return_me",
+                    "remainingEstimate": "don't_return_me",
+                    "timeSpent": "don't_return_me",
+                    "originalEstimateSeconds": "return_originalEstimateSeconds",
+                    "remainingEstimateSeconds": "return_remainingEstimateSeconds",
+                    "timeSpentSeconds": "return_timeSpentSeconds",
+                },
+                "customfield_10004": [
+                    "com.atlassian.greenhopper.service.sprint.Sprint@5a1b0835[id=56,rapidViewId=37,state=CLOSED,name=Total pkg 2017: 10/23 - 10/27,goal=,startDate=2017-10-23T14:09:09.683Z,endDate=2017-10-30T14:09:00.000Z,completeDate=2017-10-30T17:05:27.549Z,sequence=56]",
+                    "com.atlassian.greenhopper.service.sprint.Sprint@18508c4a[id=59,rapidViewId=37,state=ACTIVE,name=Total pkg 2017: 10/30 - 11/3,goal=,startDate=2017-10-30T17:06:02.051Z,endDate=2017-11-06T18:06:00.000Z,completeDate=<null>,sequence=59]"
+                ],
+            }
+        }
+
+        expected_outocmes = {
+            'key': 'TEST-123',
+            'summary': 'return_summary',
+            'issue_type': 'return_issuetype',
+            'components': 'return_component',
+            'fix_versions': 'return_fixVersions',
+            'reporter': 'return_reporter',
+            'assignee': 'return_assignee',
+            'created_datetime': 'return_created',
+            'updated_datetime': 'return_updated',
+            'resolved_datetime': 'return_resolutiondate',
+            'status': 'return_status',
+            'labels': 'return_label',
+            'original_estimate': 'return_originalEstimateSeconds',
+            'remaining_estimate': 'return_remainingEstimateSeconds',
+            'time_spent': 'return_timeSpentSeconds',
+            'sprints': 'Total pkg 2017: 10/23 - 10/27,Total pkg 2017: 10/30 - 11/3',
+        }
+
+        for key, outcome in expected_outocmes.items():
+            result = main.parse_issue_json(test_json)[key]
+            self.assertEqual(result, expected_outocmes[key])
