@@ -35,11 +35,34 @@ def time_estimates_plot(data_frame, xrange=None):
     plotly.plot(figure, filename='test')
 
 
+def bugs_open_by_sprint(data_frame, xrange=None):
+    bugs_tally, sprint_list = _tally_bugs_by_sprint(data_frame)
+    trace0 = Bar(
+        x=sprint_list,
+        y=[bugs_tally[sprint] for sprint in sprint_list],
+        name='Total Bugs'
+    )
+
+    data = Data([trace0])
+    layout = Layout(
+        title='Bugs Open by Sprint',
+        xaxis=dict(
+            title='Sprint',
+            range=xrange,
+        ),
+        yaxis=dict(
+            title='Number of Bugs'
+        ),
+    )
+
+
 def _tally_bugs_by_sprint(data_frame):
     tally = {}
+    sprint_list = []
     for i, row in data_frame.iterrows():
         sprints = row['sprints'].split(',') if row['sprints'] else None
+        sprint_list.extend(sprints)
         if row['issue_type'] == 'Bug' and sprints:
             tally.update({sprint: tally.setdefault(sprint, 0) + 1 for sprint in sprints})
 
-    return tally
+    return tally, sprint_list
