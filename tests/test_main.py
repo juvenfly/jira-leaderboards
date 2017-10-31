@@ -102,15 +102,16 @@ class TestMainHelpers(TestCase):
             result = main.parse_issue_json(self.test_json)[key]
             self.assertEqual(result, expected_outocmes[key])
 
-    def test_get_sprints(self):
+    def test_get_sprint_info(self):
         no_sprint_string_json = {
             "fields": {
                 "some_fields": "non_sprint_data",
             }
         }
 
-        self.assertIsNone(main.get_sprints(no_sprint_string_json))
+        # TODO: Test other values of val_name
+        self.assertIsNone(main.get_sprint_info(no_sprint_string_json, 'name'))
 
         expected_result = 'Total pkg 2017: 10/23 - 10/27,Total pkg 2017: 10/30 - 11/3'
-        result = main.get_sprints(self.test_json)
+        result = main.get_sprint_info(self.test_json, 'name')
         self.assertEqual(result, expected_result)
