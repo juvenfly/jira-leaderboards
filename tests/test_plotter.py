@@ -13,7 +13,8 @@ class TestPlotter(TestCase):
             {'sprints': 'Sprint 1,Sprint 2', 'issue_type': 'Bug'},
             {'sprints': 'Sprint 2', 'issue_type': 'Bug'},
             {'sprints': 'Sprint 2,Sprint 3', 'issue_type': 'Task'},
-            {'sprints': 'Sprint 3', 'issue_type': 'Bug'}
+            {'sprints': 'Sprint 3', 'issue_type': 'Bug'},
+            {'sprints': None, 'issue_type': 'Bug'}
         ]
         data_frame = pandas.DataFrame(data)
 

@@ -38,7 +38,7 @@ def time_estimates_plot(data_frame, xrange=None):
 def _tally_bugs_by_sprint(data_frame):
     tally = {}
     for i, row in data_frame.iterrows():
-        sprints = row['sprints'].split(',')
+        sprints = row['sprints'].split(',') if row['sprints'] else None
         if row['issue_type'] == 'Bug' and sprints:
             tally.update({sprint: tally.setdefault(sprint, 0) + 1 for sprint in sprints})
 
