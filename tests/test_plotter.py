@@ -23,6 +23,8 @@ class TestPlotter(TestCase):
             'Sprint 2': 2,
             'Sprint 3': 1,
         }
-        actual_tally = plotter._tally_bugs_by_sprint(data_frame)
+        expected_sprint_list = ['Sprint 1', 'Sprint 2', 'Sprint 3']
+        actual_tally, actual_sprint_list = plotter._tally_bugs_by_sprint(data_frame)
 
         self.assertEqual(expected_tally, actual_tally)
+        self.assertEqual(expected_sprint_list, actual_sprint_list)
