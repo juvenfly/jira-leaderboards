@@ -54,6 +54,8 @@ def bugs_open_by_sprint(data_frame, xrange=None):
             title='Number of Bugs'
         ),
     )
+    figure = Figure(data=data, layout=layout)
+    plotly.plot(figure=figure, filename='test')
 
 
 def _tally_bugs_by_sprint(data_frame):
