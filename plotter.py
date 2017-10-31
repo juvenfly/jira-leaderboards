@@ -63,7 +63,10 @@ def _tally_bugs_by_sprint(data_frame):
     sprint_list = []
     for i, row in data_frame.iterrows():
         sprints = row['sprints'].split(',') if row['sprints'] else None
-        sprint_list.extend(sprints)
+        if sprints:
+            for sprint in sprints:
+                if sprint not in sprint_list:
+                    sprint_list.append(sprint)
         if row['issue_type'] == 'Bug' and sprints:
             tally.update({sprint: tally.setdefault(sprint, 0) + 1 for sprint in sprints})
 
