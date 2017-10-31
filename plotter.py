@@ -33,3 +33,13 @@ def time_estimates_plot(data_frame, xrange=None):
     )
     figure = Figure(data=data, layout=layout)
     plotly.plot(figure, filename='test')
+
+
+def _tally_bugs_by_sprint(data_frame):
+    tally = {}
+    for i, row in data_frame.iterrows():
+        sprints = row['sprints'].split(',')
+        if row['issue_type'] == 'Bug' and sprints:
+            tally.update({sprint: tally.setdefault(sprint, 0) + 1 for sprint in sprints})
+
+    return tally
