@@ -82,7 +82,6 @@ class TestJirApi(TestCase):
         self.jira.start_issue = 2
         results = []
         for i, issue in enumerate(self.jira.all_issues()):
-            print(issue)
             results.append(issue)
 
         self.assertEqual(len(results), 2)
