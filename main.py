@@ -133,8 +133,8 @@ def get_leaf_value(issue_json, keys):
         if isinstance(result[0], str):
             result = ','.join(result)
         elif isinstance(result[0], dict):
-            temp_result = ','.join([result[i].get('name') for i, obj in enumerate(result)])
-            result = temp_result
+            result = ','.join([result[i].get('name') for i, obj in enumerate(result)])
+
     return result
 
 
