@@ -29,7 +29,9 @@ class JirApi(object):
         :return: yields JIRA issue JSON
         """
         issue_num = self.start_issue
-        while self.more_to_pull and issue_num <= self.end_issue:
+        while self.more_to_pull:
+            if self.end_issue and issue_num > self.end_issue:
+                break
             issue_key = '{}-{}'.format(self.project, issue_num)
             if issue_num % 50 == 0:
                 print('Fetching Issue: {}'.format(issue_key))
@@ -49,7 +51,7 @@ class JirApi(object):
             self.found_ticket = True
         elif resp.status_code == 404 and self.found_ticket:
             self.more_to_pull = False
-            self.store_state_json(issue_key)
+            store_state_json(issue_key)
         elif resp.status_code == 401:
             raise Exception('Unauthorized')
 
