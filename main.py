@@ -113,7 +113,7 @@ def parse_issue_json(issue):
     :return: unordered dict of row values
     """
     row_dict = {key: get_leaf_value(issue, FIELD_MAP[key]) for key in HEADER if key != 'sprints'}
-    row_dict['sprints'] = get_sprints(issue)
+    row_dict['sprints'] = get_sprint_info(issue, 'name')
     return row_dict
 
 
@@ -138,12 +138,20 @@ def get_leaf_value(issue_json, keys):
     return result
 
 
-def get_sprints(issue):
+def get_sprint_info(issue, val_name):
+    if val_name not in {'name', 'startDate', 'endDate'}:
+        raise ValueError('val_name must be one of "name", "startDate", or "endDate"')
     try:
         sprints_string = issue['fields']['customfield_10004']
     except KeyError:
         return None
-    sprints = ','.join([re.search(r'name=(.+),goal=', sprint).group(1) for sprint in sprints_string])
+    regex_map = {
+        'name': r'name=(.+),goal=',
+        'startDate': r'startDate=(.+),endDate',
+        'endDate': r'endDate=(.+),completedDate',
+    }
+    regex = regex_map[val_name]
+    sprints = ','.join([re.search(regex, sprint).group(1) for sprint in sprints_string])
 
     return sprints
 
