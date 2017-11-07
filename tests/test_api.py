@@ -21,7 +21,7 @@ class TestJirApi(TestCase):
         self.jira.start_issue = 1
         self.jira.end_issue = 3
 
-    @mock.patch('api.JirApi.store_state_json')
+    @mock.patch('api.store_state_json')
     @mock.patch('api.requests.get')
     def test_get_issue_json(self, mock_get, mock_store):
         mock_get.return_value.status_code = 200

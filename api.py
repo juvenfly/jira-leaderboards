@@ -63,7 +63,7 @@ class JirApi(object):
         return result
 
 
-def store_state_json(self, issue_key):
+def store_state_json(issue_key):
     with open('state.json', 'w+') as state_file:
         state_json = json.loads(state_file)
         state_json['last_ticket_retrieved'] = issue_key
