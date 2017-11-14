@@ -65,7 +65,10 @@ class JirApi(object):
 
 def execute_jql_query(jql_query):
     url = 'https://farmobile.atlassian.net/rest/api/2/search'
-    params = {'jql': jql_query}
+    params = {
+        'jql': jql_query,
+        'validateQuery': 'strict',
+    }
     response = requests.get(url, params=params)
     response.raise_for_status()
     return response.json()
