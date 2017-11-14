@@ -63,6 +63,14 @@ class JirApi(object):
         return result
 
 
+def execute_jql_query(self, jql_query):
+    url = 'https://farmobile.atlassian.net/rest/api/2/search'
+    params = {'jql': jql_query}
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    return response.json()
+
+
 def store_state_json(issue_key):
     with open('state.json', 'w+') as state_file:
         state_json = json.loads(state_file)
