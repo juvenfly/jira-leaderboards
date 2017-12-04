@@ -5,7 +5,7 @@ import re
 
 import requests
 
-from constants import HEADER, FIELD_MAP
+from constants import HEADER, FIELD_MAP, EXCLUDED_ISSUE_TYPES
 
 
 class JirApi(object):
@@ -75,8 +75,9 @@ class JirApi(object):
         for issue in self.all_issues():
             row_index = get_issue_num(issue)
             row_dict = parse_issue_json(issue)
-            row = [row_dict[field] for field in HEADER]
-            data_frame.loc[row_index] = row
+            if row_dict['issue_type'] not in EXCLUDED_ISSUE_TYPES:
+                row = [row_dict[field] for field in HEADER]
+                data_frame.loc[row_index] = row
 
         return data_frame
 
