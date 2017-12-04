@@ -1,8 +1,11 @@
 import base64
 import getpass
 import json
+import re
 
 import requests
+
+from constants import HEADER, FIELD_MAP
 
 
 class JirApi(object):
@@ -62,6 +65,53 @@ class JirApi(object):
             raise
         return result
 
+    def collect_issues(self, data_frame):
+        """
+        Compile all issues from a given board into a pandas dataframe
+        :param jirapi_conn: JirApi object
+        :param data_frame: pandas data_frame in which to store JIRA issue data
+        :return: pandas data_frame with all JIRA issue data
+        """
+        for issue in self.all_issues():
+            row_index = get_issue_num(issue)
+            row_dict = parse_issue_json(issue)
+            row = [row_dict[field] for field in HEADER]
+            data_frame.loc[row_index] = row
+
+        return data_frame
+
+
+def parse_issue_json(issue):
+    """
+    Create a dict of values to be inserted into pandas data_frame
+    :param issue: issue JSON from JirApi
+    :return: unordered dict of row values
+    """
+    row_dict = {key: get_leaf_value(issue, FIELD_MAP[key]) for key in HEADER if key != 'sprints'}
+    row_dict['sprints'] = get_sprint_info(issue, 'name')
+    return row_dict
+
+
+def get_leaf_value(issue_json, keys):
+    """
+    Descends JSON object based on list of keys and returns leaf value.
+    :param issue_json: issue_json from JIRA API
+    :param keys: list of keys in order from outermost to innermost
+    :return: leaf value or None if there is a None-ish value anywhere along the way
+    """
+    result = issue_json
+    for i, key in enumerate(keys):
+        result = result.get(keys[i])
+        if result is None:
+            break
+    if result and isinstance(result, list):
+        if isinstance(result[0], str):
+            result = ','.join(result)
+        elif isinstance(result[0], dict):
+            result = ','.join([result[i].get('name') for i, obj in enumerate(result)])
+
+    return result
+
 
 def execute_jql_query(jql_query):
     url = 'https://farmobile.atlassian.net/rest/api/2/search'
@@ -79,3 +129,25 @@ def store_state_json(issue_key):
         state_json = json.loads(state_file)
         state_json['last_ticket_retrieved'] = issue_key
         json.dump(state_json, state_file)
+
+
+def get_sprint_info(issue, val_name):
+    if val_name not in {'name', 'startDate', 'endDate'}:
+        raise ValueError('val_name must be one of "name", "startDate", or "endDate"')
+    try:
+        sprints_string = issue['fields']['customfield_10004']
+    except KeyError:
+        return None
+    regex_map = {
+        'name': r'name=(.+),goal=',
+        'startDate': r'startDate=(.+),endDate',
+        'endDate': r'endDate=(.+),completedDate',
+    }
+    regex = regex_map[val_name]
+    sprints = ','.join([re.search(regex, sprint).group(1) for sprint in sprints_string])
+
+    return sprints
+
+
+def get_issue_num(issue):
+    return issue['key'].split('-')[-1]
