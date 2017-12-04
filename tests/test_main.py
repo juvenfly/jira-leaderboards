@@ -102,6 +102,23 @@ class TestMainHelpers(TestCase):
             result = main.parse_issue_json(self.test_json)[key]
             self.assertEqual(result, expected_outocmes[key])
 
+        json_with_nulls = {
+            "key": "TEST-234",
+            "fields": {
+                "timetracking": {
+                    "originalEstimateSeconds": None,
+                }
+            }
+        }
+
+        expected_outcomes = {
+            "key": "TEST-234",
+            "original_estimate": None,
+        }
+        for key, outcome in expected_outcomes.items():
+            result = main.parse_issue_json(json_with_nulls)[key]
+            self.assertEqual(result, expected_outcomes[key])
+
     def test_get_sprint_info(self):
         no_sprint_string_json = {
             "fields": {
