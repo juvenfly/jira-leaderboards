@@ -36,3 +36,8 @@ FIELD_MAP = {
     'sprints': ['fields', 'customfield_10004'],
     'description': ['fields', 'description'],
 }
+
+EXCLUDED_ISSUE_TYPES = [
+    'Epic',
+    'Story',
+]
