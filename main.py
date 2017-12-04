@@ -40,7 +40,8 @@ FIELD_MAP = {
     'original_estimate': ['fields', 'timetracking', 'originalEstimateSeconds'],
     'remaining_estimate': ['fields', 'timetracking', 'remainingEstimateSeconds'],
     'time_spent': ['fields', 'timetracking', 'timeSpentSeconds'],
-    'sprints': ['fields', 'customfield_10004']
+    'sprints': ['fields', 'customfield_10004'],
+    'description': ['fields', 'description'],
 }
 
 
@@ -52,11 +53,13 @@ def main():
     except FileNotFoundError:
         data_frame = pd.DataFrame(columns=HEADER)
 
-    # data_frame = collect_issues(jira, data_frame)
+    data_frame = collect_issues(jira, data_frame)
 
-    # data_frame.to_csv('issues.csv')
-    calc_average_time_est_error(data_frame)
-    time_estimates_plot(data_frame, xrange=[jira.start_issue, jira.end_issue])
+    data_frame.to_csv('issues.csv')
+
+    # TODO: Refactor fancy graph stuff out into command line flags
+    # calc_average_time_est_error(data_frame)
+    # time_estimates_plot(data_frame, xrange=[jira.start_issue, jira.end_issue])
 
 
 def calc_average_time_est_error(data_frame):
@@ -92,7 +95,7 @@ def calc_average_time_est_error(data_frame):
 
 def collect_issues(jirapi_conn, data_frame):
     """
-    Compile all issues from a given board into
+    Compile all issues from a given board into a pandas dataframe
     :param jirapi_conn: JirApi object
     :param data_frame: pandas data_frame in which to store JIRA issue data
     :return: pandas data_frame with all JIRA issue data
