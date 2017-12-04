@@ -1,4 +1,5 @@
 import re
+from argparse import ArgumentParser
 
 import pandas as pd
 
@@ -46,16 +47,27 @@ FIELD_MAP = {
 
 
 def main():
-    jira = JirApi(start_issue=4300, end_issue=5000)
+    parser = ArgumentParser()
+    parser.add_argument(
+        "-u",
+        "--update-issues",
+        dest="update_issues",
+        help="Update issue data set",
+        action="store_true"
+    )
+    args = parser.parse_args()
+    update_issues = args.update_issues
+
     try:
         # TODO: validate header from archive is same as above
         data_frame = pd.DataFrame.from_csv('issues.csv')
     except FileNotFoundError:
         data_frame = pd.DataFrame(columns=HEADER)
 
-    data_frame = collect_issues(jira, data_frame)
-
-    data_frame.to_csv('issues.csv')
+    if update_issues:
+        jira = JirApi(start_issue=4300, end_issue=5000)
+        data_frame = collect_issues(jira, data_frame)
+        data_frame.to_csv('issues.csv')
 
     # TODO: Refactor fancy graph stuff out into command line flags
     # calc_average_time_est_error(data_frame)
