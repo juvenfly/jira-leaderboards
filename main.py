@@ -53,7 +53,19 @@ def main():
         "--update-issues",
         dest="update_issues",
         help="Update issue data set",
-        action="store_true"
+        action="store_true",
+    )
+    parser.add_argument(
+        "-s",
+        "--start-issue",
+        dest="start_issue",
+        help="First issue to pull",
+    )
+    parser.add_argument(
+        "-e",
+        "--end-issue",
+        dest="end_issue",
+        help="Last issue to pull",
     )
     args = parser.parse_args()
     update_issues = args.update_issues
