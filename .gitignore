@@ -107,3 +107,6 @@ ENV/
 state.json
 sample_issue.json
 issues.csv
+
+# OS
+.DS_Store
