@@ -32,20 +32,9 @@ def main():
         help="Last issue to pull",
     )
     args = parser.parse_args()
-    update_issues = args.update_issues
+    update_issues_flag = args.update_issues
 
-    try:
-        # TODO: validate header from archive is same as above
-        data_frame = pd.DataFrame.from_csv('issues.csv')
-    except FileNotFoundError:
-        if not update_issues:
-            raise
-        data_frame = pd.DataFrame(columns=HEADER)
-
-    if update_issues:
-        jira = JirApi(start_issue=4300, end_issue=5000)
-        data_frame = jira.collect_issues(data_frame)
-        data_frame.to_csv('issues.csv')
+    data_frame = fetch_data(update_issues_flag)
 
     data_frame = vectorize_text_fields(data_frame)
 
@@ -61,6 +50,23 @@ def main():
         min_samples_leaf=5,
     )
     classifier_gini.fit(x_train, y_train)
+
+
+def fetch_data(update_issues_flag):
+    try:
+        # TODO: validate header from archive is same as above
+        data_frame = pd.DataFrame.from_csv('issues.csv')
+    except FileNotFoundError:
+        if not update_issues_flag:
+            raise
+        data_frame = pd.DataFrame(columns=HEADER)
+
+    if update_issues_flag:
+        jira = JirApi(start_issue=4300, end_issue=5000)
+        data_frame = jira.collect_issues(data_frame)
+        data_frame.to_csv('issues.csv')
+
+    return data_frame
 
 
 def vectorize_text_fields(data_frame):
