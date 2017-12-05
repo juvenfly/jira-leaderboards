@@ -3,6 +3,7 @@ from argparse import ArgumentParser
 import numpy
 import pandas
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.externals import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 
@@ -31,11 +32,28 @@ def main():
         dest="end_issue",
         help="Last issue to pull",
     )
+    parser.add_argument(
+        "-m",
+        "--update-model",
+        dest="update_model",
+        help="Update model flag",
+        action="store_true",
+    )
     args = parser.parse_args()
     update_issues_flag = args.update_issues
+    update_model_flag = args.update_model
+    # TODO programatically generate model filename based on type
+    model_name = 'test.pkl'
 
     data_frame = fetch_data(update_issues_flag)
 
+    if update_model_flag:
+        model = update_or_create_model(data_frame)
+    else:
+        model = joblib.load(model_name)
+
+
+def update_or_create_model(data_frame):
     x_vals = data_frame.drop('time_spent', axis=1)
     y_vals = data_frame['time_spent']
 
@@ -48,6 +66,8 @@ def main():
         min_samples_leaf=5,
     )
     classifier_gini.fit(x_train, y_train)
+
+    return classifier_gini
 
 
 def fetch_data(update_issues_flag):
