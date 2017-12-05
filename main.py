@@ -13,11 +13,19 @@ from constants import HEADER
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
         "-u",
         "--update-issues",
         dest="update_issues",
         help="Update issue data set",
+        action="store_true",
+    )
+    group.add_argument(
+        "-U",
+        "--update-all-issues",
+        dest="update_all_issues",
+        help="Recreate issue data set",
         action="store_true",
     )
     parser.add_argument(
