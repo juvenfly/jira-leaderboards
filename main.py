@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 
 import numpy
-import pandas as pd
+import pandas
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
@@ -53,11 +53,11 @@ def main():
 def fetch_data(update_issues_flag):
     try:
         # TODO: validate header from archive is same as above
-        data_frame = pd.DataFrame.from_csv('issues.csv')
+        data_frame = pandas.DataFrame.from_csv('issues.csv')
     except FileNotFoundError:
         if not update_issues_flag:
             raise
-        data_frame = pd.DataFrame(columns=HEADER)
+        data_frame = pandas.DataFrame(columns=HEADER)
 
     if update_issues_flag:
         jira = JirApi(start_issue=4300, end_issue=5000)
