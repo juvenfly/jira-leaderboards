@@ -4,10 +4,10 @@ import numpy
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
 
 from api import JirApi
-from constants import HEADER, FIELD_MAP
-from plotter import time_estimates_plot
+from constants import HEADER
 
 
 def main():
@@ -54,15 +54,24 @@ def main():
 
     x_train, x_test, y_train, y_test = train_test_split(x_vals, y_vals, test_size=0.3, random_state=100)
 
+    classifier_gini = DecisionTreeClassifier(
+        criterion='gini',
+        random_state=100,
+        max_depth=3,
+        min_samples_leaf=5,
+    )
+    classifier_gini.fit(x_train, y_train)
+
 
 def vectorize_text_fields(data_frame):
     vectorizer = TfidfVectorizer()
     for column_name in data_frame:
-        if data_frame[column_name].dtype == numpy.object:
+        if column_name != 'time_spent' and data_frame[column_name].dtype == numpy.object:
             tfidf_vect = vectorizer.fit_transform(data_frame[column_name])
             vect_column_name = column_name + '_tfidf'
             data_frame[vect_column_name] = tfidf_vect
     return data_frame
+
 
 if __name__ == '__main__':
     main()
