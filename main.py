@@ -24,6 +24,12 @@ def main(update_type, update_model_flag, start_issue, end_issue):
 
 
 def update_or_create_model(data_frame):
+    """
+    Updates or creates model based upon data in dataframe.
+    :param data_frame: pandas dataframe object
+    :return: returns model
+    """
+    # TODO currently only creates; need to implement model updates
     x_vals = data_frame.drop('time_spent', axis=1)
     y_vals = data_frame['time_spent']
 
@@ -41,6 +47,13 @@ def update_or_create_model(data_frame):
 
 
 def fetch_data(update_type, start_issue, end_issue):
+    """
+    Gets data from file, JIRA API or both depending on update_type
+    :param update_type: val of "all" recreates dataset from scratch, "append" not yet implemented
+    :param start_issue: starting ticket number to pull from
+    :param end_issue: end ticket number to pull from
+    :return: returns pandas data frame
+    """
     try:
         # TODO: validate header from archive is same as above
         data_frame = pandas.DataFrame.from_csv('issues.csv')
@@ -64,6 +77,11 @@ def fetch_data(update_type, start_issue, end_issue):
 
 
 def vectorize_text_fields(data_frame):
+    """
+    Creates a tfidf vector for all columns of dtype numpy.object
+    :param data_frame: pandas data frame
+    :return: pandas data frame
+    """
     vectorizer = TfidfVectorizer()
     for column_name in data_frame:
         if column_name != 'time_spent' and data_frame[column_name].dtype == numpy.object:
