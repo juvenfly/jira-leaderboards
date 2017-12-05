@@ -36,8 +36,6 @@ def main():
 
     data_frame = fetch_data(update_issues_flag)
 
-    data_frame = vectorize_text_fields(data_frame)
-
     x_vals = data_frame.drop('time_spent', axis=1)
     y_vals = data_frame['time_spent']
 
@@ -65,6 +63,8 @@ def fetch_data(update_issues_flag):
         jira = JirApi(start_issue=4300, end_issue=5000)
         data_frame = jira.collect_issues(data_frame)
         data_frame.to_csv('issues.csv')
+
+    data_frame = vectorize_text_fields(data_frame)
 
     return data_frame
 
