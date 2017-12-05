@@ -11,7 +11,69 @@ from api import JirApi
 from constants import HEADER
 
 
-def main():
+def main(update_type, update_model_flag, start_issue, end_issue):
+    # TODO programatically generate model filename based on type
+    model_name = 'test.pkl'
+
+    data_frame = fetch_data(update_type, start_issue, end_issue)
+
+    if update_model_flag:
+        model = update_or_create_model(data_frame)
+    else:
+        model = joblib.load(model_name)
+
+
+def update_or_create_model(data_frame):
+    x_vals = data_frame.drop('time_spent', axis=1)
+    y_vals = data_frame['time_spent']
+
+    x_train, x_test, y_train, y_test = train_test_split(x_vals, y_vals, test_size=0.3, random_state=100)
+
+    classifier_gini = DecisionTreeClassifier(
+        criterion='gini',
+        random_state=100,
+        max_depth=3,
+        min_samples_leaf=5,
+    )
+    classifier_gini.fit(x_train, y_train)
+
+    return classifier_gini
+
+
+def fetch_data(update_type, start_issue, end_issue):
+    try:
+        # TODO: validate header from archive is same as above
+        data_frame = pandas.DataFrame.from_csv('issues.csv')
+    except FileNotFoundError:
+        if not update_type:
+            raise
+        data_frame = pandas.DataFrame(columns=HEADER)
+
+    if update_type == 'all':
+        jira = JirApi(start_issue=start_issue, end_issue=end_issue)
+        data_frame = jira.collect_issues(data_frame)
+        data_frame.to_csv('issues.csv')
+    elif update_type == 'append':
+        # TODO: Programatically determine start_ & end_issue vals
+        raise Exception('Append new data not implemented. Use -U to update entire dataset.')
+
+
+    data_frame = vectorize_text_fields(data_frame)
+
+    return data_frame
+
+
+def vectorize_text_fields(data_frame):
+    vectorizer = TfidfVectorizer()
+    for column_name in data_frame:
+        if column_name != 'time_spent' and data_frame[column_name].dtype == numpy.object:
+            tfidf_vect = vectorizer.fit_transform(data_frame[column_name])
+            vect_column_name = column_name + '_tfidf'
+            data_frame[vect_column_name] = tfidf_vect
+    return data_frame
+
+
+if __name__ == '__main__':
     parser = ArgumentParser()
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
@@ -49,63 +111,16 @@ def main():
     )
     args = parser.parse_args()
     update_issues_flag = args.update_issues
+    update_all_issues = args.update_all_issues
     update_model_flag = args.update_model
-    # TODO programatically generate model filename based on type
-    model_name = 'test.pkl'
+    start_issue = args.start_issue
+    end_issue = args.end_issue
 
-    data_frame = fetch_data(update_issues_flag)
-
-    if update_model_flag:
-        model = update_or_create_model(data_frame)
+    if update_all_issues:
+        update_type = 'all'
+    elif update_issues_flag:
+        update_type = 'append'
     else:
-        model = joblib.load(model_name)
+        update_type = None
 
-
-def update_or_create_model(data_frame):
-    x_vals = data_frame.drop('time_spent', axis=1)
-    y_vals = data_frame['time_spent']
-
-    x_train, x_test, y_train, y_test = train_test_split(x_vals, y_vals, test_size=0.3, random_state=100)
-
-    classifier_gini = DecisionTreeClassifier(
-        criterion='gini',
-        random_state=100,
-        max_depth=3,
-        min_samples_leaf=5,
-    )
-    classifier_gini.fit(x_train, y_train)
-
-    return classifier_gini
-
-
-def fetch_data(update_issues_flag):
-    try:
-        # TODO: validate header from archive is same as above
-        data_frame = pandas.DataFrame.from_csv('issues.csv')
-    except FileNotFoundError:
-        if not update_issues_flag:
-            raise
-        data_frame = pandas.DataFrame(columns=HEADER)
-
-    if update_issues_flag:
-        jira = JirApi(start_issue=4300, end_issue=5000)
-        data_frame = jira.collect_issues(data_frame)
-        data_frame.to_csv('issues.csv')
-
-    data_frame = vectorize_text_fields(data_frame)
-
-    return data_frame
-
-
-def vectorize_text_fields(data_frame):
-    vectorizer = TfidfVectorizer()
-    for column_name in data_frame:
-        if column_name != 'time_spent' and data_frame[column_name].dtype == numpy.object:
-            tfidf_vect = vectorizer.fit_transform(data_frame[column_name])
-            vect_column_name = column_name + '_tfidf'
-            data_frame[vect_column_name] = tfidf_vect
-    return data_frame
-
-
-if __name__ == '__main__':
-    main()
+    main(update_type, update_model_flag, start_issue, end_issue)
