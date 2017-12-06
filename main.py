@@ -30,8 +30,10 @@ def update_or_create_model(data_frame):
     :return: returns model
     """
     # TODO currently only creates; need to implement model updates
-    x_vals = data_frame.drop('time_spent', axis=1)
-    y_vals = data_frame['time_spent']
+    training_set = create_training_subset(data_frame)
+
+    x_vals = training_set.drop('time_spent', axis=1)
+    y_vals = training_set['time_spent']
 
     x_train, x_test, y_train, y_test = train_test_split(x_vals, y_vals, test_size=0.3, random_state=100)
 
@@ -74,6 +76,16 @@ def fetch_data(update_type, start_issue, end_issue):
     data_frame = vectorize_text_fields(data_frame)
 
     return data_frame
+
+
+def create_training_subset(data_frame):
+    """
+    Strips out all rows that do not have an actual time spent value.
+    :param data_frame: pandas data frame
+    :return: training set data frame
+    """
+    training_set = data_frame.loc[data_frame['time_spent'].notnull()]
+    return training_set
 
 
 def vectorize_text_fields(data_frame):
