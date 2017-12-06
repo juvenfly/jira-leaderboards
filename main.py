@@ -4,6 +4,7 @@ import numpy
 import pandas
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.externals import joblib
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 
@@ -44,6 +45,9 @@ def update_or_create_model(data_frame):
         min_samples_leaf=5,
     )
     classifier_gini.fit(x_train, y_train)
+
+    test_result = classifier_gini.predict(x_test)
+    print(accuracy_score(y_test, test_result))
 
     return classifier_gini
 
