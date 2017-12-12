@@ -71,3 +71,40 @@ def _tally_bugs_by_sprint(data_frame):
             tally.update({sprint: tally.setdefault(sprint, 0) + 1 for sprint in sprints})
 
     return tally, sprint_list
+
+
+def calc_average_time_est_error(data_frame):
+    """
+    Calculates average time estimation error.
+    :param data_frame:
+    :return:
+    """
+    # TODO: Refactor me. I am a mess.
+    overestimated_count = 0
+    underestimated_count = 0
+    spot_on = 0
+    total_diff = 0
+    time_tracked_issues = 0
+    for i, row in data_frame.iterrows():
+        original_estimate = row['original_estimate'] if pd.notnull(row['original_estimate']) else None
+        time_spent = row['time_spent'] if pd.notnull(row['time_spent']) else None
+        if original_estimate and time_spent:
+            if original_estimate < time_spent:
+                underestimated_count += 1
+            elif original_estimate > time_spent:
+                overestimated_count += 1
+            else:
+                spot_on += 1
+            time_tracked_issues += 1
+            diff = original_estimate - time_spent
+            total_diff += diff
+    average_estimate = round(data_frame['original_estimate'].mean() / 60, 2)
+    average_actual = round(data_frame['time_spent'].mean() / 60, 2)
+    average_diff = round(total_diff / (time_tracked_issues * 60), 2)
+    print('Overestimated issues: {}'.format(overestimated_count))
+    print('Underestimated issues: {}'.format(underestimated_count))
+    print('Spot on: {}'.format(spot_on))
+    print('Total time tracked issues: {}'.format(time_tracked_issues))
+    print('Average etimate: {}m'.format(average_estimate))
+    print('Average actual: {}m'.format(average_actual))
+    print('Average estimate off by {}m.'.format(average_diff))
