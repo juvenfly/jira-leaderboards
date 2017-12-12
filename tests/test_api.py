@@ -174,7 +174,7 @@ class TestJirApiHelpers(TestCase):
                 'depth_2_2': 'return_me'
             },
             'list_leaf_1': {
-                'list_leaf_2': ['return', 'me']
+                'list_leaf_2': ['return', 'me'],
             },
             'broken': {
                 None: "don't return me"

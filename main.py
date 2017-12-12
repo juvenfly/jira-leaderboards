@@ -1,3 +1,4 @@
+import datetime
 from argparse import ArgumentParser
 
 import numpy
@@ -6,6 +7,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.externals import joblib
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 from sklearn.tree import DecisionTreeClassifier
 
 from api import JirApi
@@ -33,7 +35,7 @@ def update_or_create_model(data_frame):
     # TODO currently only creates; need to implement model updates
     training_set = create_training_subset(data_frame)
 
-    x_vals = training_set.drop('time_spent', axis=1)
+    x_vals = training_set.drop(['time_spent', 'key'], axis=1)
     y_vals = training_set['time_spent']
 
     x_train, x_test, y_train, y_test = train_test_split(x_vals, y_vals, test_size=0.3, random_state=100)
@@ -44,6 +46,9 @@ def update_or_create_model(data_frame):
         max_depth=3,
         min_samples_leaf=5,
     )
+    # print(numpy.unique(list(map(len, x_train))))
+    print(data_frame)
+    print(data_frame.shape)
     classifier_gini.fit(x_train, y_train)
 
     test_result = classifier_gini.predict(x_test)
@@ -69,6 +74,7 @@ def fetch_data(update_type, start_issue, end_issue):
         data_frame = pandas.DataFrame(columns=HEADER)
 
     if update_type == 'all':
+        print("Updating all issue data")
         jira = JirApi(start_issue=start_issue, end_issue=end_issue)
         data_frame = jira.collect_issues(data_frame)
         data_frame.to_csv('issues.csv')
@@ -76,7 +82,7 @@ def fetch_data(update_type, start_issue, end_issue):
         # TODO: Programatically determine start_ & end_issue vals
         raise Exception('Append new data not implemented. Use -U to update entire dataset.')
 
-
+    data_frame = convert_datetimes_to_ordinals(data_frame)
     data_frame = vectorize_text_fields(data_frame)
 
     return data_frame
@@ -99,11 +105,28 @@ def vectorize_text_fields(data_frame):
     :return: pandas data frame
     """
     vectorizer = TfidfVectorizer()
+    excluded_columns = ['time_spent', 'key', 'original_estimate', 'remaining_estimate']
     for column_name in data_frame:
-        if column_name != 'time_spent' and data_frame[column_name].dtype == numpy.object:
-            tfidf_vect = vectorizer.fit_transform(data_frame[column_name])
-            vect_column_name = column_name + '_tfidf'
-            data_frame[vect_column_name] = tfidf_vect
+        if column_name not in excluded_columns and data_frame[column_name].dtype == numpy.object:
+            tfidf_vect = vectorizer.fit_transform(data_frame[column_name].values.astype('U'))
+            vect_df = list(tfidf_vect.toarray())
+            # data_frame = pandas.concat([data_frame, vect_df])
+            data_frame[column_name] = vect_df
+
+    return data_frame
+
+
+def convert_datetimes_to_ordinals(data_frame):
+    """
+    Converts datetime columns in data frame to ordinals
+    :param data_frame: pandas data frame
+    :return: pandas data frame
+    """
+    date_columns = ['created_datetime', 'updated_datetime', 'resolved_datetime']
+    for column in date_columns:
+        data_frame[column] = pandas.to_datetime(data_frame[column])
+        data_frame[column] = data_frame[column].map(datetime.datetime.toordinal)
+
     return data_frame
 
 
@@ -127,12 +150,14 @@ if __name__ == '__main__':
     parser.add_argument(
         "-s",
         "--start-issue",
+        type=int,
         dest="start_issue",
         help="First issue to pull",
     )
     parser.add_argument(
         "-e",
         "--end-issue",
+        type=int,
         dest="end_issue",
         help="Last issue to pull",
     )

@@ -105,6 +105,8 @@ def get_leaf_value(issue_json, keys):
         result = result.get(keys[i])
         if result is None:
             break
+        elif result == []:
+            result = None
     if result and isinstance(result, list):
         if isinstance(result[0], str):
             result = ','.join(result)
