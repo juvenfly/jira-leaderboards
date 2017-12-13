@@ -11,7 +11,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.tree import DecisionTreeClassifier
 
 from api import JirApi
-from constants import HEADER
+from constants import HEADER, EXCLUDED_FIELDS
 
 
 def main(update_type, update_model_flag, start_issue, end_issue):
@@ -35,7 +35,7 @@ def update_or_create_model(data_frame):
     # TODO currently only creates; need to implement model updates
     training_set = create_training_subset(data_frame)
 
-    x_vals = training_set.drop(['time_spent', 'key'], axis=1)
+    x_vals = training_set.drop(EXCLUDED_FIELDS, axis=1)
     y_vals = training_set['time_spent']
 
     x_train, x_test, y_train, y_test = train_test_split(x_vals, y_vals, test_size=0.3, random_state=100)
@@ -46,13 +46,10 @@ def update_or_create_model(data_frame):
         max_depth=3,
         min_samples_leaf=5,
     )
-    # print(numpy.unique(list(map(len, x_train))))
-    print(data_frame)
-    print(data_frame.shape)
     classifier_gini.fit(x_train, y_train)
 
     test_result = classifier_gini.predict(x_test)
-    print(accuracy_score(y_test, test_result))
+    print("Accuracy Score: {}".format(accuracy_score(y_test, test_result)))
 
     return classifier_gini
 
@@ -105,12 +102,17 @@ def vectorize_text_fields(data_frame):
     :return: pandas data frame
     """
     vectorizer = TfidfVectorizer()
-    excluded_columns = ['time_spent', 'key', 'original_estimate', 'remaining_estimate']
+    excluded_columns = ['time_spent', 'key', 'original_estimate', 'remaining_estimate', 'sprint']
+    included_columns = ['description']
     for column_name in data_frame:
-        if column_name not in excluded_columns and data_frame[column_name].dtype == numpy.object:
-            tfidf_vect = vectorizer.fit_transform(data_frame[column_name].values.astype('U'))
-            vect_df = list(tfidf_vect.toarray())
+        # if column_name not in EXCLUDED_FIELDS:
+        if column_name in included_columns:
+            # tfidf_vect = vectorizer.fit_transform(data_frame[column_name].values.astype('U'))
+            # vect_df = list(tfidf_vect.toarray())
             # data_frame = pandas.concat([data_frame, vect_df])
+
+            vect_df = vectorizer.fit_transform(data_frame[column_name].values.astype('U')).toarray()
+
             data_frame[column_name] = vect_df
 
     return data_frame
