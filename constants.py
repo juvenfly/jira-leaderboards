@@ -1,6 +1,7 @@
 HEADER = [
     'key',
     'summary',
+    'description',
     'issue_type',
     'components',
     'fix_versions',
