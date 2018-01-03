@@ -45,20 +45,10 @@ EXCLUDED_ISSUE_TYPES = [
 
 EXCLUDED_FIELDS = [
     'key',
-    'summary',
-    # 'description',
-    'issue_type',
-    'components',
     'fix_versions',
-    'reporter',
-    'assignee',
     'created_datetime',
     'updated_datetime',
     'resolved_datetime',
     'status',
-    'labels',
-    'original_estimate',
-    'remaining_estimate',
-    'time_spent',
     'sprints',
 ]
