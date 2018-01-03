@@ -102,14 +102,8 @@ def vectorize_text_fields(data_frame):
     :return: pandas data frame
     """
     vectorizer = TfidfVectorizer()
-    excluded_columns = ['time_spent', 'key', 'original_estimate', 'remaining_estimate', 'sprint']
-    included_columns = ['description']
     for column_name in data_frame:
-        # if column_name not in EXCLUDED_FIELDS:
-        if column_name in included_columns:
-            # tfidf_vect = vectorizer.fit_transform(data_frame[column_name].values.astype('U'))
-            # vect_df = list(tfidf_vect.toarray())
-            # data_frame = pandas.concat([data_frame, vect_df])
+        if column_name not in EXCLUDED_FIELDS:
 
             vect_df = vectorizer.fit_transform(data_frame[column_name].values.astype('U')).toarray()
 
