@@ -5,7 +5,7 @@ import re
 
 import requests
 
-from constants import HEADER, FIELD_MAP, EXCLUDED_ISSUE_TYPES
+from constants import HEADER, FIELD_MAP, EXCLUDED_ISSUE_TYPES, INCLUDED_PROJECTS
 
 
 class JirApi(object):
@@ -13,7 +13,7 @@ class JirApi(object):
         if basic_auth:
             username = input('Username: ')
             password = getpass.getpass('Password: ')
-            self.access_token = base64.b64encode('{}:{}'.format(username, password).encode('ascii'))
+            self.access_token = base64.b64encode('{}:{}'.format(username, password).encode('ascii')).decode('utf-8')
             self.headers = {
                 'Authorization': 'Basic {}'.format(self.access_token),
                 'Content-Type': 'application/json',
@@ -75,7 +75,7 @@ class JirApi(object):
         for issue in self.all_issues():
             row_index = get_issue_num(issue)
             row_dict = parse_issue_json(issue)
-            if row_dict['issue_type'] not in EXCLUDED_ISSUE_TYPES:
+            if row_dict['issue_type'] not in EXCLUDED_ISSUE_TYPES and any(project in row_dict['key'] for project in INCLUDED_PROJECTS):
                 row = [row_dict[field] for field in HEADER]
                 data_frame.loc[row_index] = row
 
