@@ -53,6 +53,25 @@ EXCLUDED_FIELDS = [
     'sprints',
 ]
 
+TEXT_FIELDS = [
+    'summary',
+    'description',
+]
+
+LABEL_FIELDS = [
+    'issue_type',
+    'components',
+    'reporter',
+    'assignee',
+    'labels',
+]
+
+NUMERICAL_FIELDS = [
+    'original_estimate',
+    'remaining_estimate',
+    'time_spent',
+]
+
 INCLUDED_PROJECTS = [
     'FARM',
 ]
