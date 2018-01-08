@@ -52,3 +52,7 @@ EXCLUDED_FIELDS = [
     'status',
     'sprints',
 ]
+
+INCLUDED_PROJECTS = [
+    'FARM',
+]
