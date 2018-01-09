@@ -18,22 +18,22 @@ def main(update_type, update_model_flag, start_issue, end_issue):
     # TODO programatically generate model filename based on type
     model_name = 'test.pkl'
 
-    data_frame = fetch_data(update_type, start_issue, end_issue)
+    dataframe = fetch_data(update_type, start_issue, end_issue)
 
     if update_model_flag:
-        model = update_or_create_model(data_frame)
+        model = update_or_create_model(dataframe)
     else:
         model = joblib.load(model_name)
 
 
-def update_or_create_model(data_frame):
+def update_or_create_model(dataframe):
     """
     Updates or creates model based upon data in dataframe.
-    :param data_frame: pandas dataframe object
+    :param dataframe: pandas dataframe object
     :return: returns model
     """
     # TODO currently only creates; need to implement model updates
-    training_set = create_training_subset(data_frame)
+    training_set = create_training_subset(dataframe)
 
     x_vals = training_set.drop(EXCLUDED_FIELDS, axis=1)
     y_vals = training_set['time_spent']
@@ -65,66 +65,66 @@ def fetch_data(update_type, start_issue, end_issue):
     """
     try:
         # TODO: validate header from archive is same as above
-        data_frame = pandas.DataFrame.from_csv('issues.csv')
+        dataframe = pandas.DataFrame.from_csv('issues.csv')
     except FileNotFoundError:
         if not update_type:
             raise
-        data_frame = pandas.DataFrame(columns=HEADER)
+        dataframe = pandas.DataFrame(columns=HEADER)
 
     if update_type == 'all':
         print("Updating all issue data")
         jira = JirApi(start_issue=start_issue, end_issue=end_issue)
-        data_frame = jira.collect_issues(data_frame)
-        data_frame.to_csv('issues.csv')
+        dataframe = jira.collect_issues(dataframe)
+        dataframe.to_csv('issues.csv')
     elif update_type == 'append':
         # TODO: Programatically determine start_ & end_issue vals
         raise Exception('Append new data not implemented. Use -U to update entire dataset.')
 
-    data_frame = convert_datetimes_to_ordinals(data_frame)
-    data_frame = vectorize_text_fields(data_frame)
+    dataframe = convert_datetimes_to_ordinals(dataframe)
+    dataframe = vectorize_text_fields(dataframe)
 
-    return data_frame
+    return dataframe
 
 
-def create_training_subset(data_frame):
+def create_training_subset(dataframe):
     """
     Strips out all rows that do not have an actual time spent value.
-    :param data_frame: pandas data frame
+    :param dataframe: pandas data frame
     :return: training set data frame
     """
-    training_set = data_frame.loc[data_frame['time_spent'].notnull()]
+    training_set = dataframe.loc[dataframe['time_spent'].notnull()]
     return training_set
 
 
-def vectorize_text_fields(data_frame):
+def vectorize_text_fields(dataframe):
     """
     Creates a tfidf vector for all columns of dtype numpy.object
-    :param data_frame: pandas data frame
+    :param dataframe: pandas data frame
     :return: pandas data frame
     """
     vectorizer = TfidfVectorizer()
-    for column_name in data_frame:
+    for column_name in dataframe:
         if column_name not in EXCLUDED_FIELDS and column_name != 'time_spent':
 
-            vect_df = vectorizer.fit_transform(data_frame[column_name].values.astype('U')).toarray()
+            vect_df = vectorizer.fit_transform(dataframe[column_name].values.astype('U')).toarray()
 
-            data_frame[column_name] = vect_df
+            dataframe[column_name] = vect_df
 
-    return data_frame
+    return dataframe
 
 
-def convert_datetimes_to_ordinals(data_frame):
+def convert_datetimes_to_ordinals(dataframe):
     """
     Converts datetime columns in data frame to ordinals
-    :param data_frame: pandas data frame
+    :param dataframe: pandas data frame
     :return: pandas data frame
     """
     date_columns = ['created_datetime', 'updated_datetime', 'resolved_datetime']
     for column in date_columns:
-        data_frame[column] = pandas.to_datetime(data_frame[column])
-        data_frame[column] = data_frame[column].map(datetime.datetime.toordinal)
+        dataframe[column] = pandas.to_datetime(dataframe[column])
+        dataframe[column] = dataframe[column].map(datetime.datetime.toordinal)
 
-    return data_frame
+    return dataframe
 
 
 if __name__ == '__main__':
