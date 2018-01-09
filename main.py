@@ -49,6 +49,7 @@ def update_or_create_model(data_frame):
     classifier_gini.fit(x_train, y_train)
 
     test_result = classifier_gini.predict(x_test)
+    print('Unique result values: {}'.format(numpy.unique(test_result)))
     print("Accuracy Score: {}".format(accuracy_score(y_test, test_result)))
 
     return classifier_gini
@@ -103,7 +104,7 @@ def vectorize_text_fields(data_frame):
     """
     vectorizer = TfidfVectorizer()
     for column_name in data_frame:
-        if column_name not in EXCLUDED_FIELDS:
+        if column_name not in EXCLUDED_FIELDS and column_name != 'time_spent':
 
             vect_df = vectorizer.fit_transform(data_frame[column_name].values.astype('U')).toarray()
 
