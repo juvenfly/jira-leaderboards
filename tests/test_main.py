@@ -46,6 +46,10 @@ class TestMainHelpers(TestCase):
         }
         cls.dataframe = pandas.DataFrame(data)
 
+    @classmethod
+    def tearDownClass(cls):
+        cls.dataframe = None
+
     def test_convert_datetimes_to_ordinals(self):
         expected_results = {
             'created_datetime': 736418,
