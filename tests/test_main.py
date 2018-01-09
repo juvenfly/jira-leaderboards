@@ -1,6 +1,8 @@
 from unittest import TestCase
 
 import pandas
+from numpy import array
+from numpy.testing import assert_array_equal
 
 import main
 
@@ -61,3 +63,13 @@ class TestMainHelpers(TestCase):
 
         for column, result in expected_results.items():
             self.assertEqual(dataframe[column].iloc[0], result)
+
+    def test_vectorize_text_fields(self):
+        expected_results = {
+            'descripiton': array(0.0),
+            'summary': array(0.4736296010332684),
+        }
+
+        dataframe = main.vectorize_text_fields(self.dataframe)
+        for column, result in expected_results.items():
+            assert_array_equal(dataframe[column].iloc[0], result)
