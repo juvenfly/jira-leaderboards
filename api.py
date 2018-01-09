@@ -53,8 +53,10 @@ class JirApi(object):
         if resp.status_code == 200:
             self.found_ticket = True
         elif resp.status_code == 404 and self.found_ticket:
-            self.more_to_pull = False
-            store_state_json(issue_key)
+            # TODO: Handle missing issues
+            pass
+            # self.more_to_pull = False
+            # store_state_json(issue_key)
         elif resp.status_code == 401:
             raise Exception('Unauthorized')
 
@@ -73,11 +75,14 @@ class JirApi(object):
         :return: pandas data_frame with all JIRA issue data
         """
         for issue in self.all_issues():
-            row_index = get_issue_num(issue)
-            row_dict = parse_issue_json(issue)
-            if row_dict['issue_type'] not in EXCLUDED_ISSUE_TYPES and any(project in row_dict['key'] for project in INCLUDED_PROJECTS):
-                row = [row_dict[field] for field in HEADER]
-                data_frame.loc[row_index] = row
+            try:
+                row_index = get_issue_num(issue)
+                row_dict = parse_issue_json(issue)
+                if row_dict['issue_type'] not in EXCLUDED_ISSUE_TYPES and any(project in row_dict['key'] for project in INCLUDED_PROJECTS):
+                    row = [row_dict[field] for field in HEADER]
+                    data_frame.loc[row_index] = row
+            except KeyError:
+                pass
 
         return data_frame
 
@@ -129,7 +134,7 @@ def execute_jql_query(jql_query):
 
 def store_state_json(issue_key):
     with open('state.json', 'w+') as state_file:
-        state_json = json.loads(state_file)
+        state_json = json.load(state_file)
         state_json['last_ticket_retrieved'] = issue_key
         json.dump(state_json, state_file)
 
