@@ -8,7 +8,7 @@ from sklearn.externals import joblib
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from api import JirApi
 from constants import HEADER, EXCLUDED_FIELDS
@@ -32,6 +32,9 @@ def update_or_create_model(dataframe):
     :param dataframe: pandas dataframe object
     :return: returns model
     """
+    # TODO accept model_type as commandline arg
+    model_type = 'regressor'
+
     # TODO currently only creates; need to implement model updates
     training_set = create_training_subset(dataframe)
 
@@ -40,6 +43,45 @@ def update_or_create_model(dataframe):
 
     x_train, x_test, y_train, y_test = train_test_split(x_vals, y_vals, test_size=0.3, random_state=100)
 
+    if model_type == 'classifier':
+        model = train_decision_tree_classifier(x_train, y_train)
+
+    elif model_type == 'regressor':
+        model = train_decision_tree_regressor(x_train, y_train)
+    else:
+        raise Exception('Model type not selected or incorrectly specified: {}'.format(model_type))
+
+    result = model.predict(x_test)
+
+    print('Model Type: {}'.format(model_type))
+    print('Accuracy Score: {}'.format(accuracy_score(y_test, result)))
+
+    dataframe['predicted_estimate'] = result
+    print(dataframe.loc[:, ['key', 'time_spent', 'predicted_estimate']])
+
+    return model
+
+
+def train_decision_tree_regressor(x_train, y_train):
+    """
+    Trains DecisionTreeRgressor on given x and y vals
+    :param x_train: training x vals from train_test_split
+    :param y_train: training y vals from train_test_split
+    :return: model
+    """
+    regressor = DecisionTreeRegressor()
+    regressor.fit(x_train, y_train)
+
+    return regressor
+
+
+def train_decision_tree_classifier(x_train, y_train):
+    """
+    Trains DecisionTreeClassifier on given x and y vals
+    :param x_train: training x vals from train_test_split
+    :param y_train: training y vals from train_test_split
+    :return: model
+    """
     classifier_gini = DecisionTreeClassifier(
         criterion='gini',
         random_state=100,
@@ -47,10 +89,6 @@ def update_or_create_model(dataframe):
         min_samples_leaf=5,
     )
     classifier_gini.fit(x_train, y_train)
-
-    test_result = classifier_gini.predict(x_test)
-    print('Unique result values: {}'.format(numpy.unique(test_result)))
-    print("Accuracy Score: {}".format(accuracy_score(y_test, test_result)))
 
     return classifier_gini
 
