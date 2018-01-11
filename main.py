@@ -58,7 +58,6 @@ def update_or_create_model(dataframe):
     model_type = 'regressor'
 
     # TODO currently only creates; need to implement model updates
-    # training_set = create_training_subset(dataframe)
     training_set = dataframe
 
     # x_vals = training_set.drop(EXCLUDED_FIELDS, axis=1)
@@ -148,16 +147,6 @@ def fetch_data(update_type, start_issue, end_issue):
     dataframe = vectorize_text_fields(dataframe)
 
     return dataframe
-
-
-def create_training_subset(dataframe):
-    """
-    Strips out all rows that do not have an actual time spent value.
-    :param dataframe: pandas data frame
-    :return: training set data frame
-    """
-    training_set = dataframe.loc[dataframe['time_spent'].notnull()]
-    return training_set
 
 
 def vectorize_text_fields(dataframe):
