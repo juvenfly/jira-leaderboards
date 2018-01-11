@@ -3,7 +3,6 @@ from argparse import ArgumentParser
 
 import numpy
 import pandas
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.externals import joblib
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, cross_val_score
@@ -145,37 +144,6 @@ def fetch_data(update_type, start_issue, end_issue):
 
     dataframe = convert_datetimes_to_ordinals(dataframe)
     dataframe = vectorize_text_fields(dataframe)
-
-    return dataframe
-
-
-def vectorize_text_fields(dataframe):
-    """
-    Creates a tfidf vector for all columns of dtype numpy.object
-    :param dataframe: pandas data frame
-    :return: pandas data frame
-    """
-    vectorizer = TfidfVectorizer()
-    for column_name in dataframe:
-        if column_name not in EXCLUDED_FIELDS and column_name != 'time_spent':
-
-            vect_df = vectorizer.fit_transform(dataframe[column_name].values.astype('U')).toarray()
-
-            dataframe[column_name] = vect_df
-
-    return dataframe
-
-
-def convert_datetimes_to_ordinals(dataframe):
-    """
-    Converts datetime columns in data frame to ordinals
-    :param dataframe: pandas data frame
-    :return: pandas data frame
-    """
-    date_columns = ['created_datetime', 'updated_datetime', 'resolved_datetime']
-    for column in date_columns:
-        dataframe[column] = pandas.to_datetime(dataframe[column])
-        dataframe[column] = dataframe[column].map(datetime.datetime.toordinal)
 
     return dataframe
 
