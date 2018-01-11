@@ -6,12 +6,26 @@ import pandas
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.externals import joblib
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.preprocessing import LabelEncoder, Imputer
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from api import JirApi
 from constants import HEADER, EXCLUDED_FIELDS
+
+
+columns_of_interest = [
+    'summary',
+    'description',
+    'issue_type',
+    'components',
+    'reporter',
+    'assignee',
+    'labels',
+    'original_estimate',
+    'remaining_estimate',
+    'time_spent',
+]
 
 
 def main(update_type, update_model_flag, start_issue, end_issue):
@@ -19,11 +33,19 @@ def main(update_type, update_model_flag, start_issue, end_issue):
     model_name = 'test.pkl'
 
     dataframe = fetch_data(update_type, start_issue, end_issue)
+    dataframe = dataframe[columns_of_interest]
+    print(dataframe.head())
 
     if update_model_flag:
         model = update_or_create_model(dataframe)
     else:
         model = joblib.load(model_name)
+
+    x_vals = dataframe.fillna(0)
+
+    result = model.predict(x_vals)
+    dataframe['predicted_time_spent'] = result
+    print(dataframe.loc[:, ['key', 'time_spent', 'predicted_time_spent']])
 
 
 def update_or_create_model(dataframe):
@@ -36,9 +58,11 @@ def update_or_create_model(dataframe):
     model_type = 'regressor'
 
     # TODO currently only creates; need to implement model updates
-    training_set = create_training_subset(dataframe)
+    # training_set = create_training_subset(dataframe)
+    training_set = dataframe
 
-    x_vals = training_set.drop(EXCLUDED_FIELDS, axis=1)
+    # x_vals = training_set.drop(EXCLUDED_FIELDS, axis=1)
+    x_vals = training_set  # drop time_spent?
     y_vals = training_set['time_spent']
 
     x_train, x_test, y_train, y_test = train_test_split(x_vals, y_vals, test_size=0.3, random_state=100)
@@ -54,10 +78,12 @@ def update_or_create_model(dataframe):
     result = model.predict(x_test)
 
     print('Model Type: {}'.format(model_type))
-    print('Accuracy Score: {}'.format(accuracy_score(y_test, result)))
+    # print('Accuracy Score: {}'.format(accuracy_score(y_test, result)))
+    print('Score: {}'.format(model.score(x_vals, y_vals)))
+    print('Cross Validation Score: {}'.format(cross_val_score(model, x_test, y_test)))
 
-    dataframe['predicted_estimate'] = result
-    print(dataframe.loc[:, ['key', 'time_spent', 'predicted_estimate']])
+    # dataframe['predicted_estimate'] = result
+    # print(dataframe.loc[:, ['key', 'time_spent', 'predicted_estimate']])
 
     return model
 
