@@ -1,3 +1,5 @@
+inf = float('inf')
+
 HEADER = [
     'key',
     'summary',
@@ -75,3 +77,12 @@ NUMERICAL_FIELDS = [
 INCLUDED_PROJECTS = [
     'FARM',
 ]
+
+STORY_POINTS_BUCKETS = {
+    (0, 10800): 1,
+    (10800, 21600): 2,
+    (21600, 108000): 3,
+    (108000, 216000): 5,
+    (216000, 432000): 8,
+    (432000, inf): 13,
+}
