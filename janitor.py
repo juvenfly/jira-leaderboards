@@ -6,8 +6,14 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from constants import EXCLUDED_FIELDS, LABEL_FIELDS, NUMERICAL_FIELDS, TEXT_FIELDS
 
 
-def impute_missing_values(column):
-    pass
+def impute_missing_values(dataframe, column):
+    value_present_column = '{}_present'.format(column)
+
+    dataframe[value_present_column] = dataframe[column].notnull()
+    dataframe[column] = dataframe[column].fillna(0)
+
+    return dataframe
+
 
 
 def vectorize_text_fields(dataframe):
