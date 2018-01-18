@@ -11,7 +11,13 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from api import JirApi
 from constants import HEADER, EXCLUDED_FIELDS
-from janitor import vectorize_text_fields, get_datetime_fields, remove_unwanted_columns, get_dummy_variables
+from janitor import (
+    vectorize_text_fields,
+    get_datetime_fields,
+    remove_unwanted_columns,
+    get_dummy_variables,
+    impute_missing_values,
+)
 
 
 def main(update_type, update_model_flag, start_issue, end_issue):
@@ -20,7 +26,9 @@ def main(update_type, update_model_flag, start_issue, end_issue):
 
     dataframe = fetch_data(update_type, start_issue, end_issue)
     dataframe = remove_unwanted_columns(dataframe)
-    print(dataframe.head())
+    for column in dataframe.columns.values:
+        if column in ['time_spent', 'original_estimate', 'remaining_estimate', 'resolved_day', 'resolved_month', 'resolved_year']:
+            dataframe = impute_missing_values(dataframe, column)
 
     if update_model_flag:
         model = update_or_create_model(dataframe)
