@@ -1,4 +1,6 @@
-inf = float('inf')
+import sys
+
+inf = sys.maxsize
 
 HEADER = [
     'key',
@@ -66,23 +68,33 @@ LABEL_FIELDS = [
     'reporter',
     'assignee',
     'labels',
+    'status'
 ]
 
 NUMERICAL_FIELDS = [
     'original_estimate',
     'remaining_estimate',
     'time_spent',
+    'created_day',
+    'created_month',
+    'created_year',
+    'updated_day',
+    'updated_month',
+    'updated_year',
+    'resolved_day',
+    'resolved_month',
+    'resolved_year',
 ]
 
 INCLUDED_PROJECTS = [
     'FARM',
 ]
 
-STORY_POINTS_BUCKETS = {
-    (0, 10800): 1,
-    (10800, 21600): 2,
-    (21600, 108000): 3,
-    (108000, 216000): 5,
-    (216000, 432000): 8,
-    (432000, inf): 13,
+STORY_POINT_BUCKETS = {
+    (0, 3600): 1,
+    (3600, 14400): 2,
+    (14400, 28800): 3,
+    (28800, 144000): 5,
+    (144000, 288000): 8,
+    (288000, inf): 13,
 }
