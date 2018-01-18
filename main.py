@@ -11,20 +11,7 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from api import JirApi
 from constants import HEADER, EXCLUDED_FIELDS
-
-
-columns_of_interest = [
-    'summary',
-    'description',
-    'issue_type',
-    'components',
-    'reporter',
-    'assignee',
-    'labels',
-    'original_estimate',
-    'remaining_estimate',
-    'time_spent',
-]
+from janitor import vectorize_text_fields, get_datetime_fields, remove_unwanted_columns, get_dummy_variables
 
 
 def main(update_type, update_model_flag, start_issue, end_issue):
@@ -32,7 +19,7 @@ def main(update_type, update_model_flag, start_issue, end_issue):
     model_name = 'test.pkl'
 
     dataframe = fetch_data(update_type, start_issue, end_issue)
-    dataframe = dataframe[columns_of_interest]
+    dataframe = remove_unwanted_columns(dataframe)
     print(dataframe.head())
 
     if update_model_flag:
@@ -142,7 +129,10 @@ def fetch_data(update_type, start_issue, end_issue):
         # TODO: Programatically determine start_ & end_issue vals
         raise Exception('Append new data not implemented. Use -U to update entire dataset.')
 
-    dataframe = convert_datetimes_to_ordinals(dataframe)
+    for column_name in ['created_datetime', 'updated_datetime', 'resolved_datetime']:
+        dataframe = get_datetime_fields(dataframe, column_name)
+
+    dataframe = get_dummy_variables(dataframe)
     dataframe = vectorize_text_fields(dataframe)
 
     return dataframe
