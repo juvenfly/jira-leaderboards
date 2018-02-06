@@ -6,6 +6,7 @@ import pandas
 from sklearn.externals import joblib
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import LabelEncoder, Imputer
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
@@ -35,7 +36,7 @@ def main(update_type, update_model_flag, start_issue, end_issue):
     else:
         model = joblib.load(model_name)
 
-    x_vals = dataframe.fillna(0)
+    x_vals = dataframe.fillna(0)  # TODO Don't impute 0s
 
     result = model.predict(x_vals)
     dataframe['predicted_time_spent'] = result
@@ -81,37 +82,6 @@ def update_or_create_model(dataframe):
     return model
 
 
-def train_decision_tree_regressor(x_train, y_train):
-    """
-    Trains DecisionTreeRgressor on given x and y vals
-    :param x_train: training x vals from train_test_split
-    :param y_train: training y vals from train_test_split
-    :return: model
-    """
-    regressor = DecisionTreeRegressor()
-    regressor.fit(x_train, y_train)
-
-    return regressor
-
-
-def train_decision_tree_classifier(x_train, y_train):
-    """
-    Trains DecisionTreeClassifier on given x and y vals
-    :param x_train: training x vals from train_test_split
-    :param y_train: training y vals from train_test_split
-    :return: model
-    """
-    classifier_gini = DecisionTreeClassifier(
-        criterion='gini',
-        random_state=100,
-        max_depth=3,
-        min_samples_leaf=5,
-    )
-    classifier_gini.fit(x_train, y_train)
-
-    return classifier_gini
-
-
 def fetch_data(update_type, start_issue, end_issue):
     """
     Gets data from file, JIRA API or both depending on update_type
@@ -144,6 +114,37 @@ def fetch_data(update_type, start_issue, end_issue):
     dataframe = vectorize_text_fields(dataframe)
 
     return dataframe
+
+
+def train_decision_tree_regressor(x_train, y_train):
+    """
+    Trains DecisionTreeRgressor on given x and y vals
+    :param x_train: training x vals from train_test_split
+    :param y_train: training y vals from train_test_split
+    :return: model
+    """
+    regressor = DecisionTreeRegressor()
+    regressor.fit(x_train, y_train)
+
+    return regressor
+
+
+def train_decision_tree_classifier(x_train, y_train):
+    """
+    Trains DecisionTreeClassifier on given x and y vals
+    :param x_train: training x vals from train_test_split
+    :param y_train: training y vals from train_test_split
+    :return: model
+    """
+    classifier_gini = DecisionTreeClassifier(
+        criterion='gini',
+        random_state=100,
+        max_depth=3,
+        min_samples_leaf=5,
+    )
+    classifier_gini.fit(x_train, y_train)
+
+    return classifier_gini
 
 
 if __name__ == '__main__':
