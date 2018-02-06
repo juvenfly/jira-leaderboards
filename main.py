@@ -1,13 +1,9 @@
-import datetime
 from argparse import ArgumentParser
 
-import numpy
 import pandas
 from sklearn.externals import joblib
-from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.preprocessing import LabelEncoder, Imputer
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from api import JirApi
@@ -62,10 +58,10 @@ def update_or_create_model(dataframe):
 
     if model_type == 'classifier':
         model = train_decision_tree_classifier(x_train, y_train)
-
-    # TODO: This is probably not the right model type. Switch back to classifier? Try random forrest? k-NN?
     elif model_type == 'regressor':
         model = train_decision_tree_regressor(x_train, y_train)
+    elif model_type == 'knn':
+        model = train_knn_classifier(x_train, y_train)
     else:
         raise Exception('Model type not selected or incorrectly specified: {}'.format(model_type))
 
