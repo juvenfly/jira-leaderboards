@@ -69,15 +69,9 @@ def update_or_create_model(dataframe):
     else:
         raise Exception('Model type not selected or incorrectly specified: {}'.format(model_type))
 
-    result = model.predict(x_test)
-
     print('Model Type: {}'.format(model_type))
-    # print('Accuracy Score: {}'.format(accuracy_score(y_test, result)))
     print('Score: {}'.format(model.score(x_vals, y_vals)))
     print('Cross Validation Score: {}'.format(cross_val_score(model, x_test, y_test)))
-
-    # dataframe['predicted_estimate'] = result
-    # print(dataframe.loc[:, ['key', 'time_spent', 'predicted_estimate']])
 
     return model
 
