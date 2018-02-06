@@ -54,8 +54,7 @@ def update_or_create_model(dataframe):
     # TODO currently only creates; need to implement model updates
     training_set = dataframe
 
-    # x_vals = training_set.drop(EXCLUDED_FIELDS, axis=1)
-    x_vals = training_set  # drop time_spent?
+    x_vals = training_set
     y_vals = training_set['time_spent']
 
     x_train, x_test, y_train, y_test = train_test_split(x_vals, y_vals, test_size=0.3, random_state=100)
@@ -63,6 +62,7 @@ def update_or_create_model(dataframe):
     if model_type == 'classifier':
         model = train_decision_tree_classifier(x_train, y_train)
 
+    # TODO: This is probably not the right model type. Switch back to classifier? Try random forrest? k-NN?
     elif model_type == 'regressor':
         model = train_decision_tree_regressor(x_train, y_train)
     else:
