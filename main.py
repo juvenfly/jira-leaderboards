@@ -50,7 +50,7 @@ def update_or_create_model(dataframe):
     :return: returns model
     """
     # TODO accept model_type as commandline arg
-    model_type = 'regressor'
+    model_type = 'knn'
 
     # TODO currently only creates; need to implement model updates
     training_set = dataframe
@@ -108,6 +108,21 @@ def fetch_data(update_type, start_issue, end_issue):
     dataframe = vectorize_text_fields(dataframe)
 
     return dataframe
+
+def train_knn_classifier(x_train, y_train):
+    """
+    Trains KNeighborClassifier on given x and y vals
+    :param x_train: training x vals from train_test_split
+    :param y_train: training y vals from train_test_split
+    :return: model
+    """
+    knn_classifier = KNeighborsClassifier(
+        weights='distance',
+        n_jobs=-1,
+    )
+    knn_classifier.fit(x_train, y_train)
+
+    return knn_classifier
 
 
 def train_decision_tree_regressor(x_train, y_train):
