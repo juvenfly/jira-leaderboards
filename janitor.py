@@ -105,6 +105,9 @@ class DataJanitor(object):
                 self.data[value_observed_column] = self.data[column].notnull()
                 self.data[column] = self.data[column].fillna(impute_val)
 
+            if column in MULTILABEL_FIELDS:
+                self.data = self.data.drop([column], axis=1)
+
 
 def fetch_date_part(date, part):
     try:
