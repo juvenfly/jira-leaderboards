@@ -7,14 +7,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from api import JirApi
-from constants import HEADER, EXCLUDED_FIELDS
-from janitor import (
-    vectorize_text_fields,
-    get_datetime_fields,
-    remove_unwanted_columns,
-    get_dummy_variables,
-    impute_missing_values,
-)
+from constants import HEADER, EXCLUDED_FIELDS, TEXT_FIELDS, LABEL_FIELDS
+from janitor import DataJanitor
 
 
 def main(update_type, update_model_flag, start_issue, end_issue):
@@ -22,21 +16,23 @@ def main(update_type, update_model_flag, start_issue, end_issue):
     model_name = 'test.pkl'
 
     dataframe = fetch_data(update_type, start_issue, end_issue)
-    dataframe = remove_unwanted_columns(dataframe)
-    for column in dataframe.columns.values:
-        if column in ['time_spent', 'original_estimate', 'remaining_estimate', 'resolved_day', 'resolved_month', 'resolved_year']:
-            dataframe = impute_missing_values(dataframe, column)
+    janitor = DataJanitor(
+        dataframe=dataframe,
+        date_columns=['created_datetime', 'updated_datetime', 'resolved_datetime'],
+    )
+    janitor.clean_data()
+    print(janitor.data.columns.values)
 
     if update_model_flag:
-        model = update_or_create_model(dataframe)
+        model = update_or_create_model(janitor.data)
     else:
         model = joblib.load(model_name)
 
-    x_vals = dataframe.fillna(0)  # TODO Don't impute 0s
+    x_vals = janitor.data
 
     result = model.predict(x_vals)
-    dataframe['predicted_time_spent'] = result
-    print(dataframe.loc[:, ['key', 'time_spent', 'predicted_time_spent']])
+    janitor.data['predicted_time_spent'] = result
+    print(janitor.data.loc[:, ['key', 'time_spent', 'predicted_time_spent']])
 
 
 def update_or_create_model(dataframe):
@@ -82,7 +78,7 @@ def fetch_data(update_type, start_issue, end_issue):
     """
     try:
         # TODO: validate header from archive is same as above
-        dataframe = pandas.DataFrame.from_csv('issues.csv')
+        dataframe = pandas.read_csv('issues.csv', index_col=0)
     except FileNotFoundError:
         if not update_type:
             raise
@@ -97,13 +93,8 @@ def fetch_data(update_type, start_issue, end_issue):
         # TODO: Programatically determine start_ & end_issue vals
         raise Exception('Append new data not implemented. Use -U to update entire dataset.')
 
-    for column_name in ['created_datetime', 'updated_datetime', 'resolved_datetime']:
-        dataframe = get_datetime_fields(dataframe, column_name)
-
-    dataframe = get_dummy_variables(dataframe)
-    dataframe = vectorize_text_fields(dataframe)
-
     return dataframe
+
 
 def train_knn_classifier(x_train, y_train):
     """
