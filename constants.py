@@ -64,11 +64,14 @@ TEXT_FIELDS = [
 
 LABEL_FIELDS = [
     'issue_type',
-    'components',
     'reporter',
     'assignee',
-    'labels',
     'status'
+]
+
+MULTILABEL_FIELDS = [
+    'components',
+    'labels',
 ]
 
 NUMERICAL_FIELDS = [
