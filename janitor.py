@@ -84,7 +84,6 @@ class DataJanitor(object):
         """
         temp_dataframe = self.data[column_name].str.get_dummies(sep=',')
         column_name_map = {old_name: '{}_{}'.format(column_name, old_name) for old_name in temp_dataframe.columns.values}
-        print(column_name_map)
         temp_dataframe = temp_dataframe.rename(index=str, columns=column_name_map)
         self.data = pandas.concat([self.data, temp_dataframe])
 
