@@ -39,7 +39,7 @@ class DataJanitor(object):
         Replaces single datetime column with separate columns for day, month, and year
         :param dataframe: pandas dataframe
         :param column_name: datetime column label
-        :return: updated pandas dataframe
+        :return: Does not return
         """
         date_type = column_name.split('_')[0]
 
@@ -54,7 +54,7 @@ class DataJanitor(object):
         """
         Creates a tfidf vector for all columns of dtype numpy.object
         :param dataframe: pandas data frame
-        :return: pandas data frame
+        :return: Does not return
         """
         vectorizer = TfidfVectorizer()
 
@@ -65,12 +65,23 @@ class DataJanitor(object):
                 self.data[column_name] = vect_df
 
     def get_dummy_variables(self):
-        # TODO This does not handle labels well. Need to split them manually.
+        """
+        Creates a separate column for each value in a category with a 1 or 0 corresponding to that value's presence
+        or absence. label_fields are parsed using pandas default get_dummies() method, while fields that contain
+        comma delimited strings of multiple values are handled separately in the get_multilabel_dummies() of this class.
+        :return: Does not return
+        """
         self.data = pandas.get_dummies(self.data, columns=self.label_fields)
         for column_name in self.multilabel_fields:
             self.get_multilabel_dummies(column_name)
 
     def get_multilabel_dummies(self, column_name):
+        """
+        Parses comma delimited sets of categorical varable values into values much like pandas default get_dummies()
+        method
+        :param column_name: Name of the source column
+        :return: Does not return
+        """
         temp_dataframe = self.data[column_name].str.get_dummies(sep=',')
         column_name_map = {old_name: '{}_{}'.format(column_name, old_name) for old_name in temp_dataframe.columns.values}
         print(column_name_map)
