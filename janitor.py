@@ -21,6 +21,7 @@ class DataJanitor(object):
         self.vectorize_text_fields()
         self.get_dummy_variables()
         self.remove_unwanted_columns()
+        self.impute_missing_values()
 
     def remove_unwanted_columns(self):
         unwanted_columns = [
@@ -87,14 +88,22 @@ class DataJanitor(object):
         temp_dataframe = temp_dataframe.rename(index=str, columns=column_name_map)
         self.data = pandas.concat([self.data, temp_dataframe])
 
+    def impute_missing_values(self, strategy=-1):
+        """
+        Checks each column for NaNs. If any exist, creates a separate column to track whether the value exists in the
+        source data, then imputes a value according to the strategy.
+        :return: Does not return
+        """
+        if strategy != -1:
+            raise Exception("Altenate imputation strategies not yet implemented. Please use -1.")
+        for column in self.data.columns.values:
+            if self.data[column].isnull().values.any():
+                value_observed_column = '{}_observed'.format(column)
+                # TODO Implement other strategies
+                impute_val = -1
 
-def impute_missing_values(dataframe, column):
-    value_present_column = '{}_present'.format(column)
-
-    dataframe[value_present_column] = dataframe[column].notnull()
-    dataframe[column] = dataframe[column].fillna(-1)
-
-    return dataframe
+                self.data[value_observed_column] = self.data[column].notnull()
+                self.data[column] = self.data[column].fillna(impute_val)
 
 
 def fetch_date_part(date, part):
