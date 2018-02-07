@@ -3,27 +3,27 @@ import pandas
 from dateutil import parser
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-from constants import EXCLUDED_FIELDS, LABEL_FIELDS, NUMERICAL_FIELDS, TEXT_FIELDS
+from constants import EXCLUDED_FIELDS, LABEL_FIELDS, NUMERICAL_FIELDS, TEXT_FIELDS, MULTILABEL_FIELDS
 
 
 class DataJanitor(object):
-    def __init__(self, dataframe, date_columns, text_fields, label_fields):
+    def __init__(self, dataframe, date_columns):
         self.data = dataframe
         self.date_columns = date_columns
-        self.text_fields = text_fields
-        self.label_fields = label_fields
+        self.text_fields = TEXT_FIELDS
+        self.label_fields = LABEL_FIELDS
+        self.multilabel_fields = MULTILABEL_FIELDS
 
     def clean_data(self):
         for column in self.date_columns:
             self.get_datetime_fields(column)
 
         self.vectorize_text_fields()
-        self.remove_unwanted_columns()
         self.get_dummy_variables()
+        self.remove_unwanted_columns()
 
     def remove_unwanted_columns(self):
         unwanted_columns = [
-            # 'components',
             'sprints',
             'fix_versions',
             'key',
@@ -65,8 +65,18 @@ class DataJanitor(object):
                 self.data[column_name] = vect_df
 
     def get_dummy_variables(self):
-        # TODO: THis does not handle Labels field correctly since it is a comma delimited string
+        # TODO This does not handle labels well. Need to split them manually.
         self.data = pandas.get_dummies(self.data, columns=self.label_fields)
+        for column_name in self.multilabel_fields:
+            self.get_multilabel_dummies(column_name)
+
+    def get_multilabel_dummies(self, column_name):
+        temp_dataframe = self.data[column_name].str.get_dummies(sep=',')
+        column_name_map = {old_name: '{}_{}'.format(column_name, old_name) for old_name in temp_dataframe.columns.values}
+        print(column_name_map)
+        temp_dataframe = temp_dataframe.rename(index=str, columns=column_name_map)
+        self.data = pandas.concat([self.data, temp_dataframe])
+
 
 def impute_missing_values(dataframe, column):
     value_present_column = '{}_present'.format(column)
