@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 
+import numpy
 import pandas
 from sklearn.externals import joblib
 from sklearn.model_selection import train_test_split, cross_val_score
@@ -20,19 +21,22 @@ def main(update_type, update_model_flag, start_issue, end_issue):
         dataframe=dataframe,
         date_columns=['created_datetime', 'updated_datetime', 'resolved_datetime'],
     )
-    janitor.clean_data()
-    print(janitor.data.columns.values)
+    data = janitor.clean_data()
+    print(data.columns.values)
 
     if update_model_flag:
-        model = update_or_create_model(janitor.data)
+        model = update_or_create_model(data)
     else:
         model = joblib.load(model_name)
 
-    x_vals = janitor.data
+    x_vals = data.drop(['time_spent'])
 
     result = model.predict(x_vals)
-    janitor.data['predicted_time_spent'] = result
-    print(janitor.data.loc[:, ['key', 'time_spent', 'predicted_time_spent']])
+    data['predicted_time_spent'] = result
+    temp_df = data[['time_spent', 'predicted_time_spent']]
+    print('Subset, where time_spent is unobserved and predicted_time_spent is not -1:')
+    print(temp_df.loc[(temp_df['predicted_time_spent'] != -1) & (temp_df['time_spent'] == -1)])
+    print(f'Data head {data.head()}')
 
 
 def update_or_create_model(dataframe):
@@ -45,9 +49,9 @@ def update_or_create_model(dataframe):
     model_type = 'knn'
 
     # TODO currently only creates; need to implement model updates
-    training_set = dataframe
+    training_set = dataframe.loc[dataframe['time_spent'].notnull()]
 
-    x_vals = training_set
+    x_vals = training_set.drop(['time_spent'])
     y_vals = training_set['time_spent']
 
     x_train, x_test, y_train, y_test = train_test_split(x_vals, y_vals, test_size=0.3, random_state=100)

@@ -23,6 +23,8 @@ class DataJanitor(object):
         self.remove_unwanted_columns()
         self.impute_missing_values()
 
+        return self.data
+
     def remove_unwanted_columns(self):
         unwanted_columns = [
             'sprints',
@@ -31,6 +33,7 @@ class DataJanitor(object):
             'created_datetime',
             'updated_datetime',
             'resolved_datetime',
+            'original_estimate',  # estimate w/out original estimate?
         ]
 
         self.data = self.data.drop(unwanted_columns, axis=1)
