@@ -38,7 +38,6 @@ class DataJanitor(object):
     def get_datetime_fields(self, column_name):
         """
         Replaces single datetime column with separate columns for day, month, and year
-        :param dataframe: pandas dataframe
         :param column_name: datetime column label
         :return: Does not return
         """
@@ -54,7 +53,6 @@ class DataJanitor(object):
     def vectorize_text_fields(self):
         """
         Creates a tfidf vector for all columns of dtype numpy.object
-        :param dataframe: pandas data frame
         :return: Does not return
         """
         vectorizer = TfidfVectorizer()
